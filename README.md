@@ -1,0 +1,2 @@
+# framewise
+FFmpeg, made friendly
