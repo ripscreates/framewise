@@ -11,6 +11,10 @@ Framewise is a friendly, step-by-step guide to building FFmpeg commands and proc
 - Browser-local run history with search and repeat.
 - Help content explaining the workflow and browser processing limits.
 
+## Project status
+
+For the current snapshot, known gaps, and recommended next steps, see [PROJECT_STATUS.md](PROJECT_STATUS.md).
+
 ## Current AI behavior
 
 The natural-language helper currently uses local keyword matching in `src/lib/intent.ts`. It does not call an AI model or require an API key. A real AI integration is still outstanding.
