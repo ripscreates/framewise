@@ -1,4 +1,5 @@
 import { useRef, useState, type ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
   AudioLines,
@@ -160,7 +161,9 @@ export function GoalStep({
           <div className="text-sm leading-relaxed">
             <p>{match.reply}</p>
             {!match.confident && (
-              <p className="mt-1 text-xs text-muted-foreground">Not quite right? Choose a different starting point below.</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Choose a starting point below, or <Link to="/help" className="font-semibold text-primary hover:underline">see the FFmpeg references</Link>.
+              </p>
             )}
           </div>
         </div>

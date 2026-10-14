@@ -90,6 +90,8 @@ export function matchIntent(text: string): IntentMatch | null {
 
   const label = OPERATIONS[op].label.toLowerCase();
   const why = best ? `because you mentioned “${best.hits.slice(0, 2).join("”, “")}”` : "as a flexible starting point, since I couldn't spot a specific task";
-  const reply = `This looks like a job to ${label}, ${why}.${notes.length ? ` I've pre-set ${notes.join(", ")}.` : ""} Next, add the files you want to work on.`;
+  const reply = best
+    ? `This looks like a job to ${label}, ${why}.${notes.length ? ` I've pre-set ${notes.join(", ")}.` : ""} Next, add the files you want to work on.`
+    : "I couldn't match that to a Framewise workflow yet. You can compress or convert video, trim a clip, extract audio, resize for social, add subtitles, or make a GIF. Choose a starting point below, or open Help for official FFmpeg references.";
   return { operation: op, matched: best?.hits ?? [], reply, settings: s, confident: !!best };
 }
