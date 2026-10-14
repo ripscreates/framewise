@@ -29,8 +29,13 @@ interface FileResult {
 
 export function useCommands(s: Settings, files: QueuedFile[], sub: File | null) {
   return useMemo(() => {
-    const inputs = files.length ? files.map((f) => f.file.name) : [s.operation === "extract-audio" ? "input.mp4" : "input.mp4"];
-    const outs = outputNames(inputs, s);
+    // Keep browser-provided relative folder paths in desktop commands. `file.name`
+    // drops that context, so scripts built from a selected folder would point at
+    // the wrong files and same-named files from different folders could collide.
+    const inputs = files.length ? files.map((f) => f.path) : ["input.mp4"];
+    // Keep generated outputs in the selected destination folder/root. Only
+    // desktop command inputs need their folder-relative paths.
+    const outs = outputNames(files.length ? files.map((f) => f.file.name) : inputs, s);
     return inputs.map((input, i) => ({
       input,
       output: outs[i],
@@ -90,7 +95,13 @@ export function ReviewStep({
   };
 
   const script = () => {
-    const lines = ["#!/bin/sh", `# Framewise — ${OPERATIONS[s.operation].label}`, "# Run this in the folder that contains your files.", "set -e", ""];
+    const lines = [
+      "#!/bin/sh",
+      `# Framewise — ${OPERATIONS[s.operation].label}`,
+      "# Run from a folder containing the selected input paths, keeping their folder structure accessible.",
+      "set -e",
+      "",
+    ];
     cmds.forEach((c) => lines.push(toShell(c.parts)));
     downloadBlob(new Blob([lines.join("\n") + "\n"], { type: "text/x-shellscript" }), "framewise-commands.sh");
   };

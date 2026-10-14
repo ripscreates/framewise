@@ -185,7 +185,7 @@ function Create() {
                 const m = matchIntent(t);
                 if (!m) return;
                 setMatch(m);
-                pick(m.operation, m.settings);
+                if (m.confident) pick(m.operation, m.settings);
               }}
               onPick={(op) => {
                 setMatch(null);

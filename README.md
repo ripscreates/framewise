@@ -15,9 +15,9 @@ Framewise is a friendly, step-by-step guide to building FFmpeg commands and proc
 
 For the current snapshot, known gaps, and recommended next steps, see [PROJECT_STATUS.md](PROJECT_STATUS.md).
 
-## Current AI behavior
+## Guided help and AI behavior
 
-The natural-language helper currently uses local keyword matching in `src/lib/intent.ts`. It does not call an AI model or require an API key. A real AI integration is still outstanding.
+The natural-language helper uses local keyword matching in `src/lib/intent.ts` to suggest one of Framewise's supported workflows and preset values. This is the planned first version: it does not call an AI model, send prompts anywhere, or require an API key. The Help page links to the official FFmpeg documentation for the wider set of filters, codecs and formats that Framewise does not guide yet.
 
 ## File handling and privacy
 
@@ -36,9 +36,10 @@ The app runs as a local development server. Use `bun run build` or `npm run buil
 
 ## Before release
 
-- Add an actual AI service if model-powered intent handling is required, including a secure server-side integration and a clear privacy policy for any prompts sent to it.
+- Grow the local keyword guide when a new workflow is implemented, using the official FFmpeg documentation as the reference.
 - Run an end-to-end conversion with representative files and verify folder saving and download fallback in supported browsers.
+- Choose and document one canonical dependency install path and lockfile.
 - Review the Lovable-provided TanStack/Vite configuration if this repository will be maintained independently of Lovable.
 - Confirm deployment and hosting requirements for the browser FFmpeg engine.
 
-The GitHub recreation omits the source project's test suite and test-runner configuration. No build, test, or conversion was run as part of this repository copy.
+The GitHub recreation omits the source project's test suite and test-runner configuration. The production build now passes on the `codex/finish-framewise` working branch; no tests or real media conversion have been run during this follow-up.
