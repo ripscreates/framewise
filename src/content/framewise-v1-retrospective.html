@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="A visual retrospective on Framewise V1: the product journey, interface, lessons, technology, and local setup references."
+    />
+    <meta name="theme-color" content="#f8f7f1" />
+    <title>Framewise V1 — From goal to FFmpeg command</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        --paper: oklch(0.985 0.008 85);
+        --surface: oklch(0.997 0.003 85);
+        --surface-soft: oklch(0.97 0.012 85);
+        --ink: oklch(0.22 0.035 275);
+        --ink-soft: oklch(0.5 0.03 275);
+        --line: oklch(0.91 0.012 85);
+        --purple: oklch(0.52 0.22 290);
+        --purple-deep: oklch(0.36 0.15 290);
+        --purple-pale: oklch(0.955 0.02 290);
+        --blue: oklch(0.6 0.2 255);
+        --blue-pale: oklch(0.95 0.035 255);
+        --mint: oklch(0.6 0.14 160);
+        --mint-pale: oklch(0.95 0.035 160);
+        --amber: oklch(0.75 0.15 75);
+        --amber-pale: oklch(0.96 0.035 85);
+        --display: "Sora", "Manrope", ui-sans-serif, system-ui, sans-serif;
+        --body: "Manrope", ui-sans-serif, system-ui, sans-serif;
+        --radius: 1.4rem;
+        --max: 72rem;
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; scroll-padding-top: 5.5rem; }
+      body {
+        margin: 0;
+        overflow-x: hidden;
+        color: var(--ink);
+        background: var(--paper);
+        font-family: var(--body);
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+      }
+      a { color: inherit; }
+      img { display: block; max-width: 100%; }
+      button, a { -webkit-tap-highlight-color: transparent; }
+      :focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; border-radius: 8px; }
+      .skip-link { position: absolute; z-index: 20; top: .5rem; left: -100vw; padding: .65rem 1rem; color: white; background: var(--ink); border-radius: .8rem; }
+      .skip-link:focus { left: .5rem; }
+      .wrap { width: min(var(--max), calc(100% - 2.5rem)); margin-inline: auto; }
+      .display { font-family: var(--display); letter-spacing: -.045em; line-height: 1.08; }
+      .eyebrow { margin: 0 0 .6rem; color: var(--purple-deep); font-size: .76rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+      .muted { color: var(--ink-soft); }
+      .section { padding: clamp(3.7rem, 8vw, 6.2rem) 0; }
+      .section-heading { max-width: 45rem; margin-bottom: 2rem; }
+      .section-heading h2 { margin: 0; font-size: clamp(2rem, 4.6vw, 3.3rem); }
+      .section-heading p:last-child { max-width: 55ch; margin: .8rem 0 0; color: var(--ink-soft); }
+
+      .site-header { position: sticky; z-index: 10; top: 0; border-bottom: 1px solid color-mix(in oklch, var(--line), transparent 12%); background: color-mix(in oklch, var(--paper), transparent 8%); backdrop-filter: blur(14px); }
+      .nav-row { min-height: 4.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+      .wordmark { display: inline-flex; align-items: center; gap: .65rem; color: var(--ink); font-family: var(--display); font-size: 1rem; font-weight: 700; text-decoration: none; }
+      .mark { display: grid; width: 2.25rem; height: 2.25rem; place-items: center; color: white; border: 2px solid var(--ink); border-radius: .8rem; background: var(--purple); box-shadow: 3px 3px 0 var(--ink); font-size: .9rem; transform: rotate(-5deg); }
+      .nav-links { display: flex; align-items: center; gap: .35rem; }
+      .nav-links a { padding: .5rem .8rem; border-radius: 999px; color: var(--ink-soft); font-size: .82rem; font-weight: 700; text-decoration: none; transition: color .16s ease, background .16s ease, transform .16s ease; }
+      .nav-links a:hover { color: var(--ink); background: var(--purple-pale); transform: translateY(-1px); }
+      .nav-links .nav-cta { color: white; background: var(--ink); }
+      .nav-links .nav-cta:hover { color: white; background: var(--purple-deep); }
+
+      .hero { position: relative; overflow: hidden; padding: clamp(4rem, 9vw, 7.5rem) 0 4.7rem; background: radial-gradient(ellipse at 5% 0%, oklch(0.955 0.02 290 / .86), transparent 45%), radial-gradient(ellipse at 96% 13%, oklch(0.95 0.035 255 / .7), transparent 35%); }
+      .hero::after { position: absolute; top: 4rem; right: max(2vw, calc((100vw - var(--max)) / 2 - 3rem)); width: 13rem; height: 13rem; border: 2px dashed color-mix(in oklch, var(--blue), transparent 42%); border-radius: 50%; content: ""; pointer-events: none; }
+      .hero-grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.04fr .96fr; align-items: center; gap: clamp(2.5rem, 6vw, 6rem); }
+      .hero-copy { max-width: 41rem; }
+      .hero-label { display: inline-flex; align-items: center; gap: .5rem; padding: .4rem .75rem; border: 2px solid var(--ink); border-radius: 999px; background: var(--surface); box-shadow: 3px 3px 0 var(--ink); font-size: .74rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; transform: rotate(-1.5deg); }
+      .hero-label span { color: var(--purple); }
+      h1 { max-width: 12ch; margin: 1.25rem 0 1.1rem; font-size: clamp(3rem, 7vw, 5.5rem); }
+      .marker { position: relative; z-index: 0; white-space: nowrap; }
+      .marker::after { position: absolute; z-index: -1; right: -.08em; bottom: .04em; left: -.08em; height: .3em; border-radius: 999px; background: color-mix(in oklch, var(--blue), white 40%); content: ""; transform: rotate(-1.4deg); }
+      .hero-lede { max-width: 54ch; margin: 0; color: var(--ink-soft); font-size: clamp(1rem, 1.55vw, 1.2rem); }
+      .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .8rem; margin-top: 1.7rem; }
+      .button { display: inline-flex; min-height: 2.85rem; align-items: center; justify-content: center; gap: .55rem; padding: .72rem 1.1rem; border: 2px solid var(--ink); border-radius: 999px; background: var(--purple); box-shadow: 0 4px 0 var(--ink); color: white; font-size: .86rem; font-weight: 800; text-decoration: none; transition: transform .16s ease, box-shadow .16s ease, background .16s ease; }
+      .button:hover { background: var(--purple-deep); box-shadow: 0 6px 0 var(--ink); transform: translateY(-2px); }
+      .button.secondary { color: var(--ink); background: var(--surface); }
+      .button.secondary:hover { background: var(--blue-pale); }
+      .hero-facts { display: flex; flex-wrap: wrap; gap: .55rem; margin: 1.6rem 0 0; padding: 0; list-style: none; }
+      .hero-facts li { padding: .35rem .65rem; border: 1px solid color-mix(in oklch, var(--purple), transparent 70%); border-radius: 999px; background: color-mix(in oklch, var(--surface), transparent 30%); color: var(--purple-deep); font-size: .75rem; font-weight: 800; }
+
+      .hero-art { position: relative; padding: .8rem; border: 3px solid var(--ink); border-radius: 1.8rem; background: var(--surface); box-shadow: 10px 10px 0 var(--ink); transform: rotate(1.1deg); }
+      .art-window { overflow: hidden; border: 1px solid var(--line); border-radius: 1.2rem; background: var(--surface-soft); }
+      .window-bar { display: flex; align-items: center; gap: .4rem; padding: .75rem .9rem; border-bottom: 1px solid var(--line); background: var(--surface); }
+      .window-dot { width: .5rem; height: .5rem; border-radius: 50%; background: var(--purple); }
+      .window-dot:nth-child(2) { background: var(--blue); }
+      .window-dot:nth-child(3) { background: var(--mint); }
+      .window-name { margin-left: auto; color: var(--ink-soft); font-size: .68rem; font-weight: 700; }
+      .hero-screenshot { width: 100%; height: auto; object-fit: cover; object-position: top; }
+      .hero-sticker { position: absolute; right: -1.25rem; bottom: 1.25rem; display: grid; width: 6.5rem; aspect-ratio: 1; place-content: center; border: 2px solid var(--ink); border-radius: 50%; background: var(--amber); box-shadow: 4px 4px 0 var(--ink); color: var(--ink); font-family: var(--display); font-size: .8rem; font-weight: 700; line-height: 1.25; text-align: center; transform: rotate(9deg); }
+      .ribbon { overflow: hidden; border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); background: var(--purple); color: white; }
+      .ribbon-inner { display: flex; width: max-content; align-items: center; gap: 1.25rem; padding: .65rem 0; font-family: var(--display); font-size: .86rem; font-weight: 600; letter-spacing: .03em; }
+      .ribbon-inner span:nth-child(3n + 1) { color: oklch(0.84 0.12 255); }
+      .ribbon-inner span:nth-child(3n + 2) { color: oklch(0.86 0.14 160); }
+      .ribbon-inner .sep { color: oklch(0.88 0.14 85); font-size: 1.1rem; }
+
+      .timeline-section { background: var(--surface-soft); }
+      .timeline { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin-top: 2.2rem; }
+      .timeline-card { position: relative; min-height: 14rem; padding: 1.3rem; border: 2px solid var(--ink); border-radius: var(--radius); background: var(--surface); box-shadow: 5px 5px 0 var(--ink); }
+      .timeline-card:nth-child(3n + 2) { background: var(--purple-pale); }
+      .timeline-card:nth-child(3n) { background: var(--blue-pale); }
+      .timeline-card .date { display: inline-flex; padding: .25rem .55rem; border-radius: 999px; background: var(--ink); color: white; font-size: .68rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+      .timeline-card h3 { margin: 1rem 0 .45rem; font-family: var(--display); font-size: 1.1rem; line-height: 1.25; }
+      .timeline-card p { margin: 0; color: var(--ink-soft); font-size: .86rem; }
+      .timeline-card .step { position: absolute; top: .9rem; right: 1rem; color: color-mix(in oklch, var(--purple), transparent 72%); font-family: var(--display); font-size: 2.2rem; font-weight: 700; }
+
+      .showcase-heading { display: flex; align-items: end; justify-content: space-between; gap: 1.5rem; }
+      .showcase-heading .section-heading { margin-bottom: 0; }
+      .tiny-note { max-width: 22rem; margin: 0 0 .4rem; color: var(--ink-soft); font-size: .76rem; }
+      .screens-grid { display: grid; grid-template-columns: 1.16fr .84fr .84fr; gap: 1rem; margin-top: 2.2rem; align-items: start; }
+      .screen-card { overflow: hidden; padding: .65rem; border: 2px solid var(--ink); border-radius: 1.25rem; background: var(--surface); box-shadow: 5px 5px 0 var(--ink); }
+      .screen-card:nth-child(2) { margin-top: 2rem; background: var(--purple-pale); }
+      .screen-card:nth-child(3) { margin-top: 4rem; background: var(--blue-pale); }
+      .screen-card img { width: 100%; aspect-ratio: 1190 / 1540; object-fit: cover; object-position: top; border: 1px solid var(--line); border-radius: .8rem; background: white; }
+      .screen-caption { padding: .75rem .35rem .3rem; }
+      .screen-caption .tag { color: var(--purple-deep); font-size: .68rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+      .screen-caption h3 { margin: .15rem 0; font-family: var(--display); font-size: 1rem; }
+      .screen-caption p { margin: .25rem 0 0; color: var(--ink-soft); font-size: .76rem; line-height: 1.5; }
+
+      .flow-section { padding-top: 0; }
+      .flow-card { padding: clamp(1.2rem, 4vw, 2rem); border: 2px solid var(--ink); border-radius: 1.7rem; background: var(--ink); box-shadow: 8px 8px 0 var(--purple); color: white; }
+      .flow-card .eyebrow { color: oklch(0.83 0.1 255); }
+      .flow-card h2 { max-width: 16ch; margin: 0; font-size: clamp(1.8rem, 4vw, 2.8rem); }
+      .flow-card > p { max-width: 64ch; color: oklch(0.84 0.018 275); }
+      .flow-steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .7rem; margin-top: 1.7rem; }
+      .flow-step { min-height: 8.5rem; padding: .85rem; border: 1px solid color-mix(in oklch, white, transparent 78%); border-radius: 1rem; background: color-mix(in oklch, white, transparent 94%); }
+      .flow-step:nth-child(2) { background: color-mix(in oklch, var(--purple), transparent 60%); }
+      .flow-step:nth-child(3) { background: color-mix(in oklch, var(--blue), transparent 65%); }
+      .flow-step:nth-child(4) { background: color-mix(in oklch, var(--mint), transparent 68%); }
+      .flow-step .num { display: grid; width: 1.65rem; height: 1.65rem; place-items: center; border-radius: 50%; background: white; color: var(--ink); font-size: .7rem; font-weight: 900; }
+      .flow-step h3 { margin: .7rem 0 .2rem; font-family: var(--display); font-size: .83rem; }
+      .flow-step p { margin: 0; color: oklch(0.84 0.018 275); font-size: .68rem; line-height: 1.45; }
+
+      .lessons-section { background: var(--purple-pale); }
+      .lesson-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .9rem; }
+      .lesson { min-height: 13rem; padding: 1.15rem; border: 2px solid var(--ink); border-radius: var(--radius); background: var(--surface); box-shadow: 4px 4px 0 var(--ink); }
+      .lesson:nth-child(4n + 2) { background: var(--blue-pale); }
+      .lesson:nth-child(4n + 3) { background: var(--mint-pale); }
+      .lesson:nth-child(4n) { background: var(--amber-pale); }
+      .lesson .symbol { display: grid; width: 2.2rem; height: 2.2rem; place-items: center; border: 2px solid var(--ink); border-radius: .75rem; background: var(--surface); color: var(--purple); font-size: 1rem; font-weight: 900; transform: rotate(-4deg); }
+      .lesson h3 { margin: .9rem 0 .4rem; font-family: var(--display); font-size: 1rem; line-height: 1.25; }
+      .lesson p { margin: 0; color: var(--ink-soft); font-size: .78rem; line-height: 1.55; }
+      .truth-note { display: flex; gap: .8rem; align-items: flex-start; margin-top: 1.2rem; padding: 1rem 1.15rem; border-left: 4px solid var(--blue); border-radius: .9rem; background: color-mix(in oklch, var(--surface), transparent 15%); color: var(--ink-soft); font-size: .82rem; }
+      .truth-note strong { color: var(--ink); }
+
+      .next-grid { display: grid; grid-template-columns: .8fr 1.2fr; gap: 2.5rem; align-items: start; }
+      .next-intro { position: sticky; top: 6.5rem; }
+      .next-intro h2 { margin: 0; font-size: clamp(2rem, 4.6vw, 3.3rem); }
+      .next-list { display: grid; gap: .8rem; counter-reset: next; }
+      .next-item { display: grid; grid-template-columns: 2.7rem 1fr; gap: .9rem; align-items: start; padding: 1rem; border: 2px solid var(--ink); border-radius: 1.1rem; background: var(--surface); box-shadow: 4px 4px 0 var(--ink); counter-increment: next; }
+      .next-item::before { display: grid; width: 2.4rem; height: 2.4rem; place-items: center; border-radius: 50%; background: var(--purple-pale); color: var(--purple-deep); content: counter(next, decimal-leading-zero); font-size: .72rem; font-weight: 900; }
+      .next-item h3 { margin: .1rem 0 .25rem; font-family: var(--display); font-size: .98rem; }
+      .next-item p { margin: 0; color: var(--ink-soft); font-size: .78rem; }
+      .hypothesis { margin-top: 1rem; color: var(--ink-soft); font-size: .73rem; }
+
+      .stack-section { background: var(--blue-pale); }
+      .stack-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .9rem; }
+      .stack-card { padding: 1.1rem; border: 2px solid var(--ink); border-radius: 1.1rem; background: var(--surface); box-shadow: 4px 4px 0 var(--ink); }
+      .stack-card .stack-kicker { color: var(--purple-deep); font-size: .65rem; font-weight: 900; letter-spacing: .11em; text-transform: uppercase; }
+      .stack-card h3 { margin: .3rem 0 .4rem; font-family: var(--display); font-size: 1rem; }
+      .stack-card p { margin: 0; color: var(--ink-soft); font-size: .76rem; }
+      .stack-card .stack-tags { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .8rem; }
+      .stack-tags span { padding: .25rem .5rem; border-radius: 999px; background: var(--surface-soft); color: var(--ink); font-size: .65rem; font-weight: 800; }
+
+      .references-section { padding-bottom: 5rem; }
+      .setup-panel { display: grid; grid-template-columns: .8fr 1.2fr; gap: 2rem; align-items: center; padding: clamp(1.4rem, 4vw, 2.4rem); border: 3px solid var(--ink); border-radius: 1.7rem; background: var(--ink); box-shadow: 8px 8px 0 var(--purple); color: white; }
+      .setup-panel h2 { margin: 0; font-size: clamp(1.6rem, 3.2vw, 2.3rem); }
+      .setup-panel p { color: oklch(0.84 0.018 275); font-size: .85rem; }
+      .setup-panel .eyebrow { color: oklch(0.83 0.1 255); }
+      .code-box { overflow-x: auto; padding: 1rem 1.1rem; border: 1px solid color-mix(in oklch, white, transparent 74%); border-radius: 1rem; background: oklch(0.17 0.025 275); }
+      .code-box pre { margin: 0; color: oklch(0.93 0.04 160); font: 500 .78rem/1.9 "JetBrains Mono", ui-monospace, SFMono-Regular, monospace; white-space: pre; }
+      .references-title { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin: 3.5rem 0 1.2rem; }
+      .references-title h2 { margin: 0; font-size: clamp(1.8rem, 3.5vw, 2.4rem); }
+      .reference-group { margin-top: 1.5rem; }
+      .reference-group h3 { margin: 0 0 .65rem; color: var(--purple-deep); font-size: .72rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+      .reference-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .65rem; }
+      .reference-link { display: flex; min-height: 4.25rem; align-items: center; justify-content: space-between; gap: .8rem; padding: .8rem .9rem; border: 1px solid var(--line); border-radius: .9rem; background: var(--surface); text-decoration: none; transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease; }
+      .reference-link:hover { border-color: var(--purple); box-shadow: 0 4px 14px oklch(0.52 0.22 290 / .12); transform: translateY(-2px); }
+      .reference-link strong { display: block; font-size: .78rem; }
+      .reference-link small { display: block; margin-top: .1rem; color: var(--ink-soft); font-size: .66rem; }
+      .reference-link .arrow { color: var(--purple); font-size: 1rem; font-weight: 900; }
+      .local-vs-desktop { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: 1.2rem; }
+      .local-vs-desktop p { margin: 0; padding: .9rem 1rem; border-radius: .9rem; background: var(--purple-pale); color: var(--ink-soft); font-size: .76rem; }
+      .local-vs-desktop p:nth-child(2) { background: var(--mint-pale); }
+      .local-vs-desktop strong { color: var(--ink); }
+
+      .site-footer { padding: 1.5rem 0 2rem; border-top: 1px solid var(--line); }
+      .footer-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; color: var(--ink-soft); font-size: .72rem; }
+      .footer-row a { color: var(--purple-deep); font-weight: 800; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+
+      @media (max-width: 900px) {
+        .hero-grid { grid-template-columns: 1fr; }
+        .hero-copy { max-width: 49rem; }
+        .hero-art { width: min(100%, 39rem); justify-self: center; }
+        .timeline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .screens-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .screen-card:first-child { grid-row: span 2; }
+        .screen-card:nth-child(2), .screen-card:nth-child(3) { margin-top: 0; }
+        .lesson-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .stack-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .flow-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .setup-panel { grid-template-columns: 1fr; gap: .8rem; }
+        .next-grid { grid-template-columns: 1fr 1.25fr; }
+      }
+      @media (max-width: 620px) {
+        .wrap { width: min(var(--max), calc(100% - 1.4rem)); }
+        .nav-row { min-height: 4rem; align-items: flex-start; padding: .65rem 0; }
+        .wordmark { padding-top: .25rem; font-size: .9rem; white-space: nowrap; }
+        .wordmark-note { display: none; }
+        .nav-links { flex-wrap: nowrap; justify-content: flex-end; gap: .05rem; }
+        .nav-links a { padding: .45rem .5rem; font-size: .67rem; white-space: nowrap; }
+        .nav-links a:nth-child(2), .nav-links a:nth-child(3) { display: none; }
+        .nav-links .nav-cta { display: inline-flex; padding: .4rem .55rem; font-size: .6rem; }
+        .hero { padding-top: 3.2rem; }
+        .hero::after { top: 2rem; right: -7rem; }
+        h1 { font-size: clamp(2.6rem, 12vw, 3.4rem); }
+        .marker { white-space: normal; }
+        .marker::after { display: none; }
+        .marker { text-decoration: underline; text-decoration-color: var(--blue); text-decoration-thickness: .13em; text-underline-offset: .08em; text-decoration-skip-ink: none; }
+        .hero-sticker { right: -.5rem; bottom: .65rem; width: 5.3rem; font-size: .68rem; }
+        .timeline { grid-template-columns: 1fr; }
+        .timeline-card { min-height: 0; }
+        .showcase-heading { display: block; }
+        .tiny-note { margin-top: .8rem; }
+        .screens-grid { grid-template-columns: 1fr; }
+        .screen-card:first-child { grid-row: auto; }
+        .screen-card img { max-height: 42rem; object-fit: cover; }
+        .flow-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .flow-step:last-child { grid-column: span 2; }
+        .lesson-grid { grid-template-columns: 1fr; }
+        .lesson { min-height: 0; }
+        .next-grid { grid-template-columns: 1fr; gap: 1.2rem; }
+        .next-intro { position: static; }
+        .stack-grid { grid-template-columns: 1fr; }
+        .reference-grid { grid-template-columns: 1fr; }
+        .local-vs-desktop { grid-template-columns: 1fr; }
+        .references-title { display: block; }
+        .references-title .muted { margin-top: .4rem; }
+        .footer-row { align-items: flex-start; flex-direction: column; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+      }
+
+      @media print {
+        @page {
+          size: letter portrait;
+          margin: .48in .48in .62in;
+          @bottom-left {
+            color: #77738b;
+            content: "FRAMEWISE  ·  V1 RETROSPECTIVE";
+            font: 700 7pt "Manrope", sans-serif;
+            letter-spacing: .08em;
+          }
+          @bottom-right {
+            color: #77738b;
+            content: counter(page);
+            font: 700 8pt "Manrope", sans-serif;
+          }
+        }
+
+        html, body { width: auto; overflow: visible; background: var(--paper) !important; }
+        body { font-size: 10pt; line-height: 1.38; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+        .site-header, .ribbon, .site-footer, .skip-link { display: none !important; }
+        .wrap { width: 100%; max-width: none; }
+        .hero, .section { padding: 0; }
+        .section { display: flex; min-height: 9.88in; align-items: center; }
+        .hero { display: flex; min-height: 9.88in; align-items: center; break-after: page; page-break-after: always; }
+        .hero-grid { grid-template-columns: 1.02fr .98fr; gap: .32in; }
+        .hero-label { padding: .28rem .55rem; font-size: 8pt; }
+        h1 { margin: .8rem 0 .65rem; font-size: 34pt; }
+        .hero-lede { font-size: 11pt; }
+        .hero-actions { margin-top: 1rem; gap: .45rem; }
+        .button { min-height: 2.35rem; padding: .5rem .72rem; font-size: 8pt; box-shadow: 0 2px 0 var(--ink); }
+        .hero-facts { gap: .3rem; margin-top: .9rem; }
+        .hero-facts li { padding: .25rem .45rem; font-size: 7pt; }
+        .hero-art { padding: .48rem; border-width: 2px; border-radius: 1.1rem; box-shadow: 5px 5px 0 var(--ink); }
+        .window-bar { padding: .42rem .55rem; }
+        .hero-screenshot { max-height: 5.35in; object-fit: contain; }
+        .hero-sticker { right: -.45rem; bottom: .6rem; width: 4.8rem; font-size: 7pt; }
+
+        #journey, #interface, .flow-section, #lessons, section[aria-labelledby="next-title"], .stack-section, #references {
+          break-before: page;
+          page-break-before: always;
+          break-inside: avoid-page;
+          page-break-inside: avoid;
+        }
+        #journey, #interface, .flow-section, #lessons, section[aria-labelledby="next-title"], .stack-section { break-after: page; page-break-after: always; }
+        .section-heading { max-width: none; margin-bottom: .24in; }
+        .section-heading h2, .next-intro h2 { font-size: 24pt; }
+        .section-heading p:last-child { margin-top: .35rem; font-size: 9pt; }
+        .eyebrow { margin-bottom: .32rem; font-size: 7pt; }
+
+        .timeline { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .16in; margin-top: .22in; }
+        .timeline-card { min-height: 0; padding: .18in; border-width: 1.5px; border-radius: .85rem; box-shadow: 3px 3px 0 var(--ink); }
+        .timeline-card .date { padding: .18rem .38rem; font-size: 6.5pt; }
+        .timeline-card h3 { margin: .48rem 0 .24rem; font-size: 10pt; }
+        .timeline-card p { font-size: 8pt; line-height: 1.35; }
+        .timeline-card .step { top: .5rem; right: .55rem; font-size: 18pt; }
+
+        .showcase-heading { display: block; }
+        .showcase-heading .section-heading { margin-bottom: 0; }
+        .tiny-note { max-width: none; margin: .3rem 0 0; font-size: 8pt; }
+        .screens-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .17in; margin-top: .25in; }
+        .screen-card, .screen-card:nth-child(2), .screen-card:nth-child(3) { margin-top: 0; padding: .1in; border-width: 1.5px; border-radius: .8rem; box-shadow: 3px 3px 0 var(--ink); }
+        .screen-card img { aspect-ratio: 1190 / 1540; height: 3.75in; object-fit: contain; }
+        .screen-caption { padding: .4rem .16rem .12rem; }
+        .screen-caption .tag { font-size: 6pt; }
+        .screen-caption h3 { font-size: 9pt; }
+        .screen-caption p { font-size: 7pt; line-height: 1.35; }
+
+        .flow-section { padding-top: 0; }
+        .flow-card { padding: .32in; border-radius: 1.2rem; box-shadow: 5px 5px 0 var(--purple); }
+        .flow-card h2 { font-size: 24pt; }
+        .flow-card > p { margin: .5rem 0; font-size: 9pt; }
+        .flow-steps { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .1in; margin-top: .25in; }
+        .flow-step { min-height: 0; padding: .12in; border-radius: .7rem; }
+        .flow-step .num { width: 1.3rem; height: 1.3rem; font-size: 7pt; }
+        .flow-step h3 { margin: .45rem 0 .15rem; font-size: 8pt; }
+        .flow-step p { font-size: 7pt; }
+
+        .lesson-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .16in; }
+        .lesson { min-height: 0; padding: .18in; border-width: 1.5px; border-radius: .85rem; box-shadow: 3px 3px 0 var(--ink); }
+        .lesson .symbol { width: 1.6rem; height: 1.6rem; font-size: 9pt; }
+        .lesson h3 { margin: .5rem 0 .25rem; font-size: 10pt; }
+        .lesson p { font-size: 8pt; }
+        .truth-note { gap: .5rem; margin-top: .18in; padding: .13in .16in; font-size: 8pt; }
+
+        .next-grid { grid-template-columns: .78fr 1.22fr; gap: .28in; }
+        .next-intro { position: static; }
+        .next-intro h2 { margin: 0; }
+        .next-intro p { font-size: 9pt; }
+        .next-list { gap: .12in; }
+        .next-item { grid-template-columns: 2rem 1fr; gap: .12in; padding: .14in; border-width: 1.5px; border-radius: .8rem; box-shadow: 3px 3px 0 var(--ink); }
+        .next-item::before { width: 1.65rem; height: 1.65rem; font-size: 7pt; }
+        .next-item h3 { font-size: 9pt; }
+        .next-item p, .hypothesis { font-size: 8pt; }
+        .hypothesis { margin-top: .16in; }
+
+        .stack-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .14in; }
+        .stack-card { padding: .16in; border-width: 1.5px; border-radius: .8rem; box-shadow: 3px 3px 0 var(--ink); }
+        .stack-card .stack-kicker { font-size: 6pt; }
+        .stack-card h3 { margin: .2rem 0 .25rem; font-size: 9pt; }
+        .stack-card p { font-size: 7.5pt; line-height: 1.35; }
+        .stack-card .stack-tags { gap: .2rem; margin-top: .35rem; }
+        .stack-tags span { padding: .16rem .3rem; font-size: 6pt; }
+
+        .setup-panel { grid-template-columns: 1fr 1fr; gap: .2in; padding: .18in .22in; border-width: 2px; border-radius: 1rem; box-shadow: 4px 4px 0 var(--purple); }
+        .setup-panel h2 { font-size: 15pt; }
+        .setup-panel p { margin: .35rem 0 0; font-size: 8pt; line-height: 1.35; }
+        .code-box { padding: .12in .16in; border-radius: .7rem; }
+        .code-box pre { font-size: 8pt; line-height: 1.5; }
+        .local-vs-desktop { gap: .1in; margin-top: .12in; }
+        .local-vs-desktop p { padding: .1in .12in; font-size: 7pt; line-height: 1.35; }
+        .references-title { margin: .22in 0 .1in; }
+        .references-title h2 { font-size: 18pt; }
+        .references-title .muted { margin: 0; font-size: 7pt; }
+        .reference-group { margin-top: .12in; }
+        .reference-group h3 { margin-bottom: .05in; font-size: 6.5pt; }
+        .reference-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .06in; }
+        .reference-link { min-height: 0; padding: .07in .09in; border-radius: .55rem; }
+        .reference-link strong { font-size: 7pt; }
+        .reference-link small { font-size: 5.8pt; line-height: 1.2; }
+        .reference-link .arrow { font-size: 8pt; }
+        .local-vs-desktop p, .stack-card, .lesson, .timeline-card, .next-item, .reference-link { break-inside: avoid; page-break-inside: avoid; }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="wrap nav-row">
+        <a class="wordmark" href="#top" aria-label="Framewise V1 retrospective, top">
+          <span class="mark" aria-hidden="true">F</span>
+          <span>Framewise <span class="wordmark-note">/ field notes 01</span></span>
+        </a>
+        <nav class="nav-links" aria-label="Page sections">
+          <a href="#journey">The journey</a>
+          <a href="#interface">The interface</a>
+          <a href="#lessons">What we learned</a>
+          <a href="#references">References</a>
+          <a href="/v1-retrospective.pdf" download>Download PDF</a>
+          <a class="nav-cta" href="/" target="_top">Back to app ↗</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <div class="wrap hero-grid">
+          <div class="hero-copy">
+            <div class="hero-label"><span>V1 retrospective</span> · October 2026</div>
+            <h1 class="display" id="hero-title">From “I need a video…” to <span class="marker">one command.</span></h1>
+            <p class="hero-lede">Framewise helps people start with the result they want, then makes FFmpeg feel like a series of small, understandable choices.</p>
+            <div class="hero-actions">
+              <a class="button" href="#journey">Follow the build story <span aria-hidden="true">↓</span></a>
+              <a class="button secondary" href="#interface">See V1 in action</a>
+            </div>
+            <ul class="hero-facts" aria-label="V1 snapshot">
+              <li>7 guided workflows</li><li>Browser + desktop</li><li>Local run history</li>
+            </ul>
+          </div>
+          <div class="hero-art" aria-label="Framewise Create screen capture">
+            <div class="art-window">
+              <div class="window-bar" aria-hidden="true"><span class="window-dot"></span><span class="window-dot"></span><span class="window-dot"></span><span class="window-name">Create · Framewise V1</span></div>
+              <img class="hero-screenshot" src="/v1-retrospective/assets/create.png" alt="The Framewise Create screen with a plain-language prompt, example requests, and seven workflow cards." />
+            </div>
+            <div class="hero-sticker" aria-hidden="true">Start with<br />the goal ✦</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="ribbon" aria-hidden="true">
+        <div class="wrap ribbon-inner">
+          <span>goal first</span><span class="sep">✦</span><span>small choices</span><span class="sep">✦</span><span>commands you can review</span><span class="sep">✦</span><span>media stays in your browser</span><span class="sep">✦</span><span>goal first</span><span class="sep">✦</span><span>small choices</span><span class="sep">✦</span><span>commands you can review</span><span class="sep">✦</span><span>media stays in your browser</span>
+        </div>
+      </div>
+
+      <section class="section timeline-section" id="journey" aria-labelledby="journey-title">
+        <div class="wrap">
+          <div class="section-heading">
+            <p class="eyebrow">A little timeline</p>
+            <h2 class="display" id="journey-title">A prototype became a project we could keep building.</h2>
+            <p>Six small milestones moved Framewise from a visual-builder idea to a working local app with a clear source of truth.</p>
+          </div>
+          <div class="timeline">
+            <article class="timeline-card"><span class="step" aria-hidden="true">01</span><span class="date">Oct 12</span><h3>The first Lovable prototype</h3><p>Create, History, and Help set the direction: plain language up front, FFmpeg detail when it helps.</p></article>
+            <article class="timeline-card"><span class="step" aria-hidden="true">02</span><span class="date">Oct 12–13</span><h3>Choose one home for the code</h3><p>The Lovable export stayed separate. The private <code>framewise</code> repository became the master project.</p></article>
+            <article class="timeline-card"><span class="step" aria-hidden="true">03</span><span class="date">Oct 13</span><h3>Write down what was missing</h3><p>A project-status report and next steps made the app easier to continue outside its original builder.</p></article>
+            <article class="timeline-card"><span class="step" aria-hidden="true">04</span><span class="date">Oct 13–14</span><h3>Keep V1’s “AI” small and local</h3><p>Keyword matching was enough for a first guide. No model API, account, or secret key was needed.</p></article>
+            <article class="timeline-card"><span class="step" aria-hidden="true">05</span><span class="date">Oct 14–15</span><h3>Make commands and setup clearer</h3><p>Folder-aware desktop paths, more useful unknown-request guidance, and official FFmpeg references improved the handoff.</p></article>
+            <article class="timeline-card"><span class="step" aria-hidden="true">06</span><span class="date">Oct 15</span><h3>Run the first-use walkthrough</h3><p>Resize, a two-file batch, folder input/output, Help, and History repeat were walked through manually.</p></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="interface" aria-labelledby="interface-title">
+        <div class="wrap">
+          <div class="showcase-heading">
+            <div class="section-heading">
+              <p class="eyebrow">A peek inside V1</p>
+              <h2 class="display" id="interface-title">Three screens. One friendly path through the work.</h2>
+              <p>These are browser-print captures from the local V1 app, made October 15, 2026.</p>
+            </div>
+            <p class="tiny-note">The captures show the product as it was tested locally; they are not screenshots of a hosted production release.</p>
+          </div>
+          <div class="screens-grid">
+            <figure class="screen-card">
+              <img src="/v1-retrospective/assets/create.png" alt="Framewise Create: describe a desired result or choose Compress, Convert, Trim, Extract audio, Resize, Subtitles, or GIF." loading="lazy" />
+              <figcaption class="screen-caption"><span class="tag">01 · Create</span><h3>Start with the outcome.</h3><p>Describe it in your own words, or pick one of seven familiar starting points.</p></figcaption>
+            </figure>
+            <figure class="screen-card">
+              <img src="/v1-retrospective/assets/history.png" alt="Framewise History with a successful GIF run, its command summary, and a Repeat action." loading="lazy" />
+              <figcaption class="screen-caption"><span class="tag">02 · History</span><h3>Pick up where you left off.</h3><p>Saved settings can be repeated; files are selected again for privacy.</p></figcaption>
+            </figure>
+            <figure class="screen-card">
+              <img src="/v1-retrospective/assets/help.png" alt="Framewise Help with supported tasks and official FFmpeg reference links." loading="lazy" />
+              <figcaption class="screen-caption"><span class="tag">03 · Help</span><h3>Know what it can do.</h3><p>Get the supported subset, browser limits, and a path to the wider FFmpeg toolkit.</p></figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="section flow-section" aria-labelledby="flow-title">
+        <div class="wrap">
+          <div class="flow-card">
+            <p class="eyebrow">Under the hood</p>
+            <h2 class="display" id="flow-title">A clear path from “what if?” to “done.”</h2>
+            <p>V1’s helper is intentionally modest: it matches words locally to supported workflows and presets. Then the user stays in control of each next step.</p>
+            <div class="flow-steps" aria-label="Framewise workflow">
+              <article class="flow-step"><span class="num">1</span><h3>Describe</h3><p>Say what you want to make.</p></article>
+              <article class="flow-step"><span class="num">2</span><h3>Choose</h3><p>Pick or skip the available steps.</p></article>
+              <article class="flow-step"><span class="num">3</span><h3>Review</h3><p>See the command and its meaning.</p></article>
+              <article class="flow-step"><span class="num">4</span><h3>Run</h3><p>Use browser WebAssembly or desktop FFmpeg.</p></article>
+              <article class="flow-step"><span class="num">5</span><h3>Repeat</h3><p>Keep settings in local browser history.</p></article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section lessons-section" id="lessons" aria-labelledby="lessons-title">
+        <div class="wrap">
+          <div class="section-heading">
+            <p class="eyebrow">Things V1 taught us</p>
+            <h2 class="display" id="lessons-title">A little guidance can make a technical tool feel human.</h2>
+          </div>
+          <div class="lesson-grid">
+            <article class="lesson"><span class="symbol" aria-hidden="true">↗</span><h3>Start with the result</h3><p>People can explain what they want without knowing FFmpeg flags. Keep goals in everyday language.</p></article>
+            <article class="lesson"><span class="symbol" aria-hidden="true">⌄</span><h3>Reveal details at the right time</h3><p>Optional steps lower the barrier, but repeated copy can still slow the flow. V2 can say less, sooner.</p></article>
+            <article class="lesson"><span class="symbol" aria-hidden="true">&gt;_</span><h3>Show what will happen</h3><p>A readable summary plus a full, copyable command helps the user trust the result and stay in control.</p></article>
+            <article class="lesson"><span class="symbol" aria-hidden="true">▧</span><h3>Batch needs a clear status</h3><p>Show the file count, shared settings, destination, and each file’s progress—not just a multi-select.</p></article>
+          </div>
+          <div class="truth-note"><span aria-hidden="true">✦</span><span><strong>Evidence note:</strong> the first-use walkthrough was a manual check, not a full browser, codec, file-size, or compatibility matrix. There were no formal usability sessions or analytics.</span></div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="next-title">
+        <div class="wrap next-grid">
+          <div class="next-intro">
+            <p class="eyebrow">Where V2 could go</p>
+            <h2 class="display" id="next-title">Less reading.<br />Same confidence.</h2>
+            <p class="muted">These are design hypotheses to explore, not research findings.</p>
+          </div>
+          <div>
+            <div class="next-list">
+              <article class="next-item"><div><h3>Lead with a few outcome tiles</h3><p>“Make smaller,” “Change format,” and “Edit a clip” can help a first-time user find the right path faster.</p></div></article>
+              <article class="next-item"><div><h3>Keep explanations close to the choice</h3><p>Use a short sentence in the flow and reveal “Why this?” details when someone wants them.</p></div></article>
+              <article class="next-item"><div><h3>Make batch mode unmistakable</h3><p>Keep the shared settings, file count, and destination visible as the queue moves.</p></div></article>
+              <article class="next-item"><div><h3>Explain the first engine download</h3><p>Set expectations before the first run, then show progress and a useful recovery step.</p></div></article>
+            </div>
+            <p class="hypothesis">A useful next session: ask first-time users to compress a clip, make a vertical version, and process a folder. Watch for task choice, command confidence, saved output, and repeatability.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section stack-section" aria-labelledby="stack-title">
+        <div class="wrap">
+          <div class="section-heading">
+            <p class="eyebrow">The V1 toolkit</p>
+            <h2 class="display" id="stack-title">A browser app, with a focused media engine.</h2>
+            <p>No cloud account or application database is required for the V1 workflow.</p>
+          </div>
+          <div class="stack-grid">
+            <article class="stack-card"><span class="stack-kicker">Interface</span><h3>React + TypeScript</h3><p>Typed UI and browser behavior for the guided workflow.</p><div class="stack-tags"><span>React 19</span><span>TypeScript</span></div></article>
+            <article class="stack-card"><span class="stack-kicker">App framework</span><h3>TanStack Start</h3><p>App routes for Create, History, and Help.</p><div class="stack-tags"><span>TanStack Start</span><span>TanStack Router</span></div></article>
+            <article class="stack-card"><span class="stack-kicker">Developer workflow</span><h3>Vite + Nitro</h3><p>Local development and a production build; Cloudflare output is configured, not deployed.</p><div class="stack-tags"><span>Vite 8</span><span>Nitro</span></div></article>
+            <article class="stack-card"><span class="stack-kicker">Look and controls</span><h3>Tailwind + Radix</h3><p>Responsive styling and accessible UI primitives, with Lucide icons.</p><div class="stack-tags"><span>Tailwind CSS 4</span><span>Radix UI</span><span>Lucide</span></div></article>
+            <article class="stack-card"><span class="stack-kicker">Media processing</span><h3>FFmpeg WebAssembly</h3><p>Runs conversions in the browser tab. The engine is fetched from a public CDN on first use.</p><div class="stack-tags"><span>@ffmpeg/ffmpeg</span><span>@ffmpeg/util</span></div></article>
+            <article class="stack-card"><span class="stack-kicker">Local by design</span><h3>Browser APIs + storage</h3><p>File selection and outputs use browser APIs. Run settings stay in localStorage on this device.</p><div class="stack-tags"><span>File APIs</span><span>localStorage</span><span>No app database</span></div></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section references-section" id="references" aria-labelledby="references-title">
+        <div class="wrap">
+          <div class="setup-panel">
+            <div>
+              <p class="eyebrow">Want to try it locally?</p>
+              <h2 class="display">A laptop, Node.js, and the project folder are enough.</h2>
+              <p>From the Framewise repository root, install the app packages and start the local development server:</p>
+            </div>
+            <div class="code-box" aria-label="Local setup commands"><pre>npm install
+npm run dev</pre></div>
+          </div>
+          <div class="local-vs-desktop">
+            <p><strong>Browser processing:</strong> Framewise uses FFmpeg WebAssembly. You do not need to install native FFmpeg to try conversions in the app.</p>
+            <p><strong>Copied desktop commands:</strong> install FFmpeg on your computer if you want to run a generated command in Terminal or a shell.</p>
+          </div>
+
+          <div class="references-title">
+            <div><p class="eyebrow">Helpful places to start</p><h2 class="display" id="references-title">Official docs &amp; downloads</h2></div>
+            <p class="muted">Links open the maintainers’ own documentation.</p>
+          </div>
+
+          <div class="reference-group">
+            <h3>Local setup and media tools</h3>
+            <div class="reference-grid">
+              <a class="reference-link" href="https://nodejs.org/en/download/" target="_blank" rel="noreferrer"><span><strong>Node.js downloads</strong><small>npm is included with Node.js</small></span><span class="arrow" aria-hidden="true">↗</span></a>
+              <a class="reference-link" href="https://docs.npmjs.com/downloading-and-installing-node-js-and-npm" target="_blank" rel="noreferrer"><span><strong>Install Node.js + npm</strong><small>Official npm setup guide</small></span><span class="arrow" aria-hidden="true">↗</span></a>
+              <a class="reference-link" href="https://git-scm.com/downloads" target="_blank" rel="noreferrer"><span><strong>Git downloads</strong><small>Clone the Framewise repository</small></span><span class="arrow" aria-hidden="true">↗</span></a>
+              <a class="reference-link" href="https://ffmpeg.org/download.html" target="_blank" rel="noreferrer"><span><strong>Get desktop FFmpeg</strong><small>Official download page and OS builds</small></span><span class="arrow" aria-hidden="true">↗</span></a>
+              <a class="reference-link" href="https://ffmpegwasm.netlify.app/docs/getting-started/installation/" target="_blank" rel="noreferrer"><span><strong>FFmpeg WebAssembly</strong><small>Browser engine install guide</small></span><span class="arrow" aria-hidden="true">↗</span></a>
+              <a class="reference-link" href="https://github.com/ripscreates/framewise" target="_blank" rel="noreferrer"><span><strong>Framewise source</strong><small>Master project repository</small></span><span class="arrow" aria-hidden="true">↗</span></a>
+            </div>
+          </div>
+
+          <div class="reference-group">
+            <h3>FFmpeg command references</h3>
+            <div class="reference-grid">
+              <a class="reference-link" href="https://ffmpeg.org/ffmpeg.html" target="_blank" rel="noreferrer"><span><strong>Command line</strong><small>Inputs, outputs, options, and streams</small></span><span class="arrow" aria-hidden="true">↗</span></a>
+              <a class="reference-link" href="https://ffmpeg.org/ffmpeg-filters.html" target="_blank" rel="noreferrer"><span><strong>Filters</strong><small>Scale, crop, subtitles, and more</small></span><span class="arrow" aria-hidden="true">↗</span></a>
+              <a class="reference-link" href="https://ffmpeg.org/ffmpeg-codecs.html" target="_blank" rel="noreferrer"><span><strong>Codecs</strong><small>Available encoders and decoders</small></span><span class="arrow" aria-hidden="true">↗</span></a>
+              <a class="reference-link" href="https://ffmpeg.org/ffmpeg-formats.html" target="_blank" rel="noreferrer"><span><strong>Formats</strong><small>Containers and media formats</small></span><span class="arrow" aria-hidden="true">↗</span></a>
+            </div>
+          </div>
+
+          <div class="reference-group">
+            <h3>Frameworks and UI tools</h3>
+            <div class="reference-grid">
+              <a class="reference-link" href="https://react.dev/learn" target="_blank" rel="noreferrer"><span><strong>React</strong><small>Official learning guide</small></span><span class="arrow" aria-hidden="true">↗</span></a>
+              <a class="reference-link" href="https://tanstack.com/start/latest/docs/framework/react/overview" target="_blank" rel="noreferrer"><span><strong>TanStack Start</strong><small>React framework docs</small></span><span class="arrow" aria-hidden="true">↗</span></a>
+              <a class="reference-link" href="https://vite.dev/guide/" target="_blank" rel="noreferrer"><span><strong>Vite</strong><small>Development and build guide</small></span><span class="arrow" aria-hidden="true">↗</span></a>
+              <a class="reference-link" href="https://www.typescriptlang.org/download/" target="_blank" rel="noreferrer"><span><strong>TypeScript</strong><small>Install and compiler references</small></span><span class="arrow" aria-hidden="true">↗</span></a>
+              <a class="reference-link" href="https://tailwindcss.com/docs/installation" target="_blank" rel="noreferrer"><span><strong>Tailwind CSS</strong><small>Install and styling docs</small></span><span class="arrow" aria-hidden="true">↗</span></a>
+              <a class="reference-link" href="https://www.radix-ui.com/primitives/docs/overview/introduction" target="_blank" rel="noreferrer"><span><strong>Radix UI</strong><small>Accessible UI primitives</small></span><span class="arrow" aria-hidden="true">↗</span></a>
+              <a class="reference-link" href="https://lucide.dev/guide/" target="_blank" rel="noreferrer"><span><strong>Lucide</strong><small>Icons used in the interface</small></span><span class="arrow" aria-hidden="true">↗</span></a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-row">
+        <span>Framewise V1 · a working project retrospective · October 2026</span>
+        <span><a href="https://github.com/ripscreates/framewise" target="_blank" rel="noreferrer">Built in the Framewise master repo ↗</a></span>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -13,7 +13,7 @@
 - The production build completed on October 14 using the dependencies installed from the repository manifest. This confirms the app compiles; it does not confirm a real media conversion.
 - The user confirmed the app runs locally on October 15. A local History capture records one successful GIF run; batch conversion, other formats, and save destinations still need a broader check.
 
-## Gaps and blockers
+## Validation and known gaps
 
 1. **Media processing needs broader validation.** One GIF run is recorded in a local History capture. A representative non-GIF conversion, batch conversion, output-save/download behavior, and folder-selected desktop commands still need to be checked in a supported browser.
 2. **Dependency install policy is not fully settled.** The repository contains a Bun lockfile and documents npm as an alternative, but no npm lockfile is present. The source `bunfig.toml` was not copied because automatic review rejected its exemptions from Bun’s 24-hour dependency-age guard.
@@ -24,7 +24,8 @@ The prior handoff reported that a Lovable edit was blocked by a workspace credit
 
 ## Recommended next steps
 
-1. Validate one known-good conversion, one batch, and folder-save/download behavior in a supported browser.
-2. Choose and document one reproducible install path and lockfile.
-3. Review the Lovable-provided TanStack/Vite configuration if this repository will be maintained independently of Lovable.
-4. Decide on hosting and publication after validation.
+1. Complete a fresh install and a small real conversion using the README instructions.
+2. Check one batch, folder save, and download fallback in current desktop browsers.
+3. Try the setup on Windows and Linux, then update the supported-platform note with what was actually verified.
+4. Choose a license and decide whether testers should use a public GitHub repo, a hosted demo, or both.
+5. Choose and configure hosting if people should try the app without installing it.

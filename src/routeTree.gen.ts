@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as HistoryRouteImport } from './routes/history'
+import { Route as V1RetrospectiveRouteImport } from './routes/v1-retrospective'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,44 @@ const HistoryRoute = HistoryRouteImport.update({
   path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
+const V1RetrospectiveRoute = V1RetrospectiveRouteImport.update({
+  id: '/v1-retrospective',
+  path: '/v1-retrospective',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/help': typeof HelpRoute
   '/history': typeof HistoryRoute
+  '/v1-retrospective': typeof V1RetrospectiveRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/help': typeof HelpRoute
   '/history': typeof HistoryRoute
+  '/v1-retrospective': typeof V1RetrospectiveRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/help': typeof HelpRoute
   '/history': typeof HistoryRoute
+  '/v1-retrospective': typeof V1RetrospectiveRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/help' | '/history'
+  fullPaths: '/' | '/help' | '/history' | '/v1-retrospective'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/help' | '/history'
-  id: '__root__' | '/' | '/help' | '/history'
+  to: '/' | '/help' | '/history' | '/v1-retrospective'
+  id: '__root__' | '/' | '/help' | '/history' | '/v1-retrospective'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   HelpRoute: typeof HelpRoute
   HistoryRoute: typeof HistoryRoute
+  V1RetrospectiveRoute: typeof V1RetrospectiveRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/v1-retrospective': {
+      id: '/v1-retrospective'
+      path: '/v1-retrospective'
+      fullPath: '/v1-retrospective'
+      preLoaderRoute: typeof V1RetrospectiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   HelpRoute: HelpRoute,
   HistoryRoute: HistoryRoute,
+  V1RetrospectiveRoute: V1RetrospectiveRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
