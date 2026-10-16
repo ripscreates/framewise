@@ -1,26 +1,26 @@
 # Framewise project status
 
-**Updated:** October 16, 2026
+**Updated:** October 15, 2026
 
 ## Current snapshot
 
-- The master repository is [ripscreates/framewise](https://github.com/ripscreates/framewise), on `main`. Pull request [#3](https://github.com/ripscreates/framewise/pull/3) was merged on October 14, 2026. The repository is currently private.
-- Framewise V1 was originally built on an Apple M1 Mac. It is a React and TypeScript app using TanStack Start/Router, Vite, Tailwind CSS, Radix UI, and Lucide.
-- The app guides common workflows for compressing or converting video, trimming, extracting audio, resizing, subtitles, and GIFs. It supports multi-file and folder selection, command review, browser conversion, local run history, and repeating a prior setup.
-- The natural-language helper uses local keyword matching and presets. It does not connect to an AI model or require an API key.
-- Browser conversions use FFmpeg WebAssembly, loaded from unpkg on the first conversion. Selected media is processed in the browser; the app stores run details such as file names, settings, and command text in browser local storage.
-- [README.md](README.md) now documents the Bun-based local install, first conversion, requirements, browser behavior, troubleshooting, and optional desktop FFmpeg setup.
-- The V1 retrospective is available as an in-app page and a printable PDF.
+- The Framewise app source is in the private `ripscreates/framewise` repository. Pull request [#1](https://github.com/ripscreates/framewise/pull/1) was merged into `main` on October 13, 2026 (merge commit `9a6366fd173730e0ae69a103d1ce9911c12a8501`).
+- The Lovable project remains available at [Framewise Media Studio](https://lovable.dev/projects/9b4e4803-c642-4d6e-90f5-fb1a948e946a), with a [preview](https://id-preview--9b4e4803-c642-4d6e-90f5-fb1a948e946a.lovable.app/). On October 13, its status reported ready, no project error, and unpublished. Its latest recorded source commit is `a7324bf73aba250fb1c04935756dd9f560bfebc1` from October 12.
+- A sync relationship between the Lovable project and this GitHub repository was not confirmed. Treat them as separate copies until that is verified.
+- The app provides guided workflows for compressing, converting, trimming, extracting audio, resizing, adding subtitles, and making GIFs. It supports multi-file/folder selection, command review, browser-based FFmpeg processing, local run history, and repeat.
+- The natural-language guide uses local keyword matching, as agreed for the first version. It does not need an OpenAI key or Dyad credits; the Help page points to official FFmpeg references for tasks outside the guided workflows.
+- Merged PR [#3](https://github.com/ripscreates/framewise/pull/3) makes folder-relative input paths visible in desktop commands, keeps browser output names compatible with folder saves, and improves unknown-request guidance and Help content.
+- The production build completed on October 14 using the dependencies installed from the repository manifest. This confirms the app compiles; it does not confirm a real media conversion.
+- The user confirmed the app runs locally on October 15. A local History capture records one successful GIF run; batch conversion, other formats, and save destinations still need a broader check.
 
 ## Validation and known gaps
 
-- The original development platform was an M1 Apple Silicon Mac. Windows and Linux support are expected from the web-based design but have not yet been validated on those systems.
-- The production build passed on October 16 using the dependencies already present in this checkout. A fresh install from `bun.lock` has not been tested in this environment. A successful build confirms that the app compiles; it does not confirm media conversion.
-- A real single-file conversion, a batch conversion, and output saving or download should be checked on a clean machine and in supported browsers.
-- Browser FFmpeg is single-threaded and can be slow or run out of memory on large files. The app warns that files over roughly 1.5 GB may be too large for browser memory. Use desktop FFmpeg for larger jobs; subtitle burn-in may require system fonts.
-- The repository has no automated test suite or test-runner configuration.
-- There is no `LICENSE` file and the repo is private. Select a license and decide whether to make the source public before inviting broad public reuse or distribution.
-- No public deployment is configured. Before hosting, verify the FFmpeg WebAssembly CDN loading behavior and choose a hosting target.
+1. **Media processing needs broader validation.** One GIF run is recorded in a local History capture. A representative non-GIF conversion, batch conversion, output-save/download behavior, and folder-selected desktop commands still need to be checked in a supported browser.
+2. **Dependency install policy is not fully settled.** The repository contains a Bun lockfile and documents npm as an alternative, but no npm lockfile is present. The source `bunfig.toml` was not copied because automatic review rejected its exemptions from Bun’s 24-hour dependency-age guard.
+3. **Automated test suite is absent from this repository copy.** The Lovable import's test files and runner configuration were not transferred. No tests were run during this follow-up.
+4. **Hosting and release remain open.** The app has not been deployed from the master repository. Confirm hosting requirements for the browser FFmpeg engine before choosing a release target.
+
+The prior handoff reported that a Lovable edit was blocked by a workspace credit limit on October 12. Current credit availability was not exposed by the project-status check.
 
 ## Recommended next steps
 
