@@ -1,6 +1,6 @@
 # Framewise project status
 
-**Updated:** October 14, 2026
+**Updated:** October 15, 2026
 
 ## Current snapshot
 
@@ -9,12 +9,13 @@
 - A sync relationship between the Lovable project and this GitHub repository was not confirmed. Treat them as separate copies until that is verified.
 - The app provides guided workflows for compressing, converting, trimming, extracting audio, resizing, adding subtitles, and making GIFs. It supports multi-file/folder selection, command review, browser-based FFmpeg processing, local run history, and repeat.
 - The natural-language guide uses local keyword matching, as agreed for the first version. It does not need an OpenAI key or Dyad credits; the Help page points to official FFmpeg references for tasks outside the guided workflows.
-- The `codex/finish-framewise` branch makes folder-relative input paths visible in desktop commands, keeps browser output names compatible with folder saves, and improves unknown-request guidance and Help content.
+- Merged PR [#3](https://github.com/ripscreates/framewise/pull/3) makes folder-relative input paths visible in desktop commands, keeps browser output names compatible with folder saves, and improves unknown-request guidance and Help content.
 - The production build completed on October 14 using the dependencies installed from the repository manifest. This confirms the app compiles; it does not confirm a real media conversion.
+- The user confirmed the app runs locally on October 15. A local History capture records one successful GIF run; batch conversion, other formats, and save destinations still need a broader check.
 
 ## Gaps and blockers
 
-1. **Media processing needs a real run.** A representative single-file conversion, batch conversion, and output-save/download check remain to be verified in a supported browser. Folder-selected desktop commands also need a quick usability check with a real folder.
+1. **Media processing needs broader validation.** One GIF run is recorded in a local History capture. A representative non-GIF conversion, batch conversion, output-save/download behavior, and folder-selected desktop commands still need to be checked in a supported browser.
 2. **Dependency install policy is not fully settled.** The repository contains a Bun lockfile and documents npm as an alternative, but no npm lockfile is present. The source `bunfig.toml` was not copied because automatic review rejected its exemptions from Bun’s 24-hour dependency-age guard.
 3. **Automated test suite is absent from this repository copy.** The Lovable import's test files and runner configuration were not transferred. No tests were run during this follow-up.
 4. **Hosting and release remain open.** The app has not been deployed from the master repository. Confirm hosting requirements for the browser FFmpeg engine before choosing a release target.
