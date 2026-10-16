@@ -4,6 +4,8 @@
 
 > **V1 note:** Framewise was originally built and first tested on an Apple M1 Mac. It is designed to run on other computers with a modern browser, but Windows and Linux have not yet been verified. Please share your operating system and browser with any issue report.
 
+See [project status and remaining validation](PROJECT_STATUS.md) for current gaps and next steps.
+
 ## What you can do
 
 - Convert or compress video
