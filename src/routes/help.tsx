@@ -44,6 +44,18 @@ function Help() {
     <div>
       <TopBar title="Help & how it works" />
       <div className="max-w-2xl space-y-3 px-5 py-6 md:px-8">
+        <a
+          href="/v1-retrospective"
+          className="surface-card flex items-center justify-between gap-4 p-5 transition-colors hover:border-primary/40"
+        >
+          <span>
+            <span className="block text-sm font-semibold text-primary">Framewise V1 retrospective</span>
+            <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
+              See the product journey, interface captures, lessons, V2 ideas, and official setup references.
+            </span>
+          </span>
+          <ArrowUpRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+        </a>
         <section className="surface-card p-5">
           <h2 className="text-base font-semibold">What Framewise can help with</h2>
           <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
