@@ -14,9 +14,9 @@
 
 ## Validation and known gaps
 
-- Framewise was built and first tested on Apple M1. Windows and Linux have not yet been verified.
+- Framewise was built and first tested on Apple M1. Automated clean-install and production-build checks passed on macOS, Linux, and Windows with Node.js 22.12.0 and 24.x on October 17.
 - A clean `npm ci` install from `package-lock.json` and production build both passed on October 17 with Node.js 22.23.1 and npm 10.9.8.
-- A GitHub Actions matrix now checks clean installs and production builds on macOS, Linux, and Windows with Node.js 22.12 and 24. Cross-platform results are pending the workflow run; these checks do not replace browser and media-conversion checks on each operating system.
+- These checks cover dependency installation and production builds, not browser interaction, media conversion, or folder saving on each operating system.
 - `npm run lint` currently reports existing Prettier formatting violations across the source tree, so it is not part of the cross-platform build gate.
 - Copied desktop commands use POSIX shell quoting. Windows users need Git Bash or WSL; native PowerShell and Command Prompt output is not implemented.
 - The first-use walkthrough was a manual check, not a full browser, operating-system, codec, file-size, or accessibility matrix. More real conversion and output checks are still needed.

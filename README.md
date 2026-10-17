@@ -2,7 +2,7 @@
 
 **FFmpeg, made friendly.** Framewise is an early-stage app that turns common media tasks into clear, reviewable FFmpeg steps. Choose what you want to do, adjust the options, then run the conversion in your browser or copy the command for desktop FFmpeg.
 
-> **V1 note:** Framewise was originally built and first tested on an Apple M1 Mac. It is designed to run on other computers with a modern browser, but Windows and Linux have not yet been verified. Please share your operating system and browser with any issue report.
+> **V1 note:** Framewise was originally built and first tested on an Apple M1 Mac. Automated clean-install and production-build checks pass on macOS, Linux, and Windows with Node.js 22.12.0 and 24.x. Browser-based conversion and folder-saving behavior still need hands-on checks across operating systems and browsers. Please include your operating system and browser with any issue report.
 
 See [project status and remaining validation](PROJECT_STATUS.md) for current gaps and next steps.
 
