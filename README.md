@@ -3,7 +3,7 @@
 **TL;DR**
 FFmpeg GUI guide to help you get the command to edit or convert video, audio, or make gifs!
 Runs local in Web Browser, no uploading, no internet needed after 1st run.
-- just need npm & latest web browser.
+- just need ffmpeg, npm & latest web browser installed.
 - keeps track of previous history, to run again later.
 - can do bulk files from folder too!
 
