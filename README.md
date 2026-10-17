@@ -107,6 +107,14 @@ bun run preview
 
 The build command prepares the app for hosting. The preview command serves that build on your computer so you can inspect it. The project does not currently include a configured public deployment.
 
+## Set up with an AI coding agent
+
+You can give an AI coding agent this repository URL and ask it to set up Framewise on your computer. This project does not need an AI API key.
+
+> Set up Framewise from this repository for local use. Read README.md and PROJECT_STATUS.md first. Use Bun and run bun install --frozen-lockfile, then bun run dev. Do not add or upload my media files. Tell me the local browser address when the app starts, and explain that the first conversion downloads the pinned FFmpeg WebAssembly engine from unpkg.
+
+The agent should explain each step and leave your media files on your device. The first browser conversion still needs an internet connection to download the FFmpeg engine.
+
 ## Troubleshooting
 
 | What you see | What to try |
@@ -126,8 +134,16 @@ The build command prepares the app for hosting. The preview command serves that 
 - Project tools: [Bun](https://bun.sh/docs), [Git](https://git-scm.com/doc), [React](https://react.dev/learn), [TanStack Start](https://tanstack.com/start/latest/docs/framework/react/overview), and [Vite](https://vite.dev/guide/)
 - [Framewise V1 retrospective PDF](public/v1-retrospective.pdf) — project timeline, interface captures, lessons, and references. The interactive retrospective page is also available at `/v1-retrospective` while the local app is running.
 
-## Feedback
+## Feedback and contributions
 
-Framewise is a first version and needs more real-world checks across operating systems and browsers. When reporting a problem, include your operating system, browser, the steps you took, and whether you chose browser conversion or a copied desktop command. Please do not attach private media files.
+Use [GitHub Issues](https://github.com/ripscreates/framewise/issues/new/choose) to report a problem or suggest an improvement. The issue forms ask for the details that help reproduce a problem, including operating system, browser, the steps you took, and whether you used browser conversion or a copied desktop command. Please do not attach private media files; remove personal file paths from screenshots or logs.
 
-There is no `LICENSE` file yet, so the repository does not currently grant permission to reuse or redistribute its code. A license should be selected before opening the source for public reuse.
+For a change you would like to make yourself, see [CONTRIBUTING.md](CONTRIBUTING.md). Existing issues are also a good place to check whether someone has reported the same problem.
+
+## License and third-party software
+
+The original Framewise source code and project documentation in this repository are offered under the [MIT License](LICENSE). You may use, modify, and redistribute those materials under its terms, including keeping the copyright and permission notice.
+
+Third-party software and services keep their own licenses and terms. In particular, Framewise loads `@ffmpeg/core@0.12.10` from unpkg for browser conversions. The package metadata declares that core package as **GPL-2.0-or-later**. The `@ffmpeg/ffmpeg` JavaScript wrapper is MIT-licensed, while the ffmpeg.wasm project explains that its WebAssembly core follows the licenses of FFmpeg and the external libraries included in its build. See the [ffmpeg.wasm FAQ](https://github.com/ffmpegwasm/ffmpeg.wasm/blob/main/apps/website/docs/faq.md), [core package metadata](https://github.com/ffmpegwasm/ffmpeg.wasm/blob/main/packages/core/package.json), and [FFmpeg's licensing guidance](https://ffmpeg.org/legal.html).
+
+The Framewise MIT license does not relicense FFmpeg, the WebAssembly core, other dependencies, web fonts, or codecs. Before bundling or redistributing the media engine, check the exact core source, build configuration, and applicable third-party notices.

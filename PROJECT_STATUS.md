@@ -1,31 +1,33 @@
 # Framewise project status
 
-**Updated:** October 15, 2026
+**Updated:** October 16, 2026
 
 ## Current snapshot
 
-- The Framewise app source is in the private `ripscreates/framewise` repository. Pull request [#1](https://github.com/ripscreates/framewise/pull/1) was merged into `main` on October 13, 2026 (merge commit `9a6366fd173730e0ae69a103d1ce9911c12a8501`).
-- The Lovable project remains available at [Framewise Media Studio](https://lovable.dev/projects/9b4e4803-c642-4d6e-90f5-fb1a948e946a), with a [preview](https://id-preview--9b4e4803-c642-4d6e-90f5-fb1a948e946a.lovable.app/). On October 13, its status reported ready, no project error, and unpublished. Its latest recorded source commit is `a7324bf73aba250fb1c04935756dd9f560bfebc1` from October 12.
-- A sync relationship between the Lovable project and this GitHub repository was not confirmed. Treat them as separate copies until that is verified.
-- The app provides guided workflows for compressing, converting, trimming, extracting audio, resizing, adding subtitles, and making GIFs. It supports multi-file/folder selection, command review, browser-based FFmpeg processing, local run history, and repeat.
-- The natural-language guide uses local keyword matching, as agreed for the first version. It does not need an OpenAI key or Dyad credits; the Help page points to official FFmpeg references for tasks outside the guided workflows.
-- Merged PR [#3](https://github.com/ripscreates/framewise/pull/3) makes folder-relative input paths visible in desktop commands, keeps browser output names compatible with folder saves, and improves unknown-request guidance and Help content.
-- The production build completed on October 14 using the dependencies installed from the repository manifest. This confirms the app compiles; it does not confirm a real media conversion.
-- The user confirmed the app runs locally on October 15. A local History capture records one successful GIF run; batch conversion, other formats, and save destinations still need a broader check.
+- The master project is the [ripscreates/framewise repository](https://github.com/ripscreates/framewise). It is still private.
+- Framewise V1 was originally built on an Apple M1 Mac. It uses React, TypeScript, TanStack Start/Router, Vite, Tailwind CSS, Radix UI, and Lucide.
+- The app guides common media tasks such as converting or compressing video, trimming, extracting audio, resizing, adding subtitles, and making GIFs. It supports multiple files and folders, command review, browser conversion, local run history, and repeating a previous setup.
+- The natural-language helper uses local keyword matching and presets. It does not connect to an AI model or need an API key.
+- Browser conversions use FFmpeg WebAssembly. The pinned core is fetched from unpkg on first use; selected media is processed in the browser, while run details are stored in browser local storage.
+- The README documents the Bun-based local setup, first conversion, browser behavior, troubleshooting, and desktop FFmpeg option. This release-prep change adds an AI-agent setup prompt, GitHub issue templates, and separate license notices for original project materials and third-party software.
+- The V1 retrospective is available as an in-app page and printable PDF. A first-use walkthrough was recorded on October 15; it covered resizing, a two-file batch, folder input/output, Help, and repeating a History item.
 
 ## Validation and known gaps
 
-1. **Media processing needs broader validation.** One GIF run is recorded in a local History capture. A representative non-GIF conversion, batch conversion, output-save/download behavior, and folder-selected desktop commands still need to be checked in a supported browser.
-2. **Dependency install policy is not fully settled.** The repository contains a Bun lockfile and documents npm as an alternative, but no npm lockfile is present. The source `bunfig.toml` was not copied because automatic review rejected its exemptions from Bun’s 24-hour dependency-age guard.
-3. **Automated test suite is absent from this repository copy.** The Lovable import's test files and runner configuration were not transferred. No tests were run during this follow-up.
-4. **Hosting and release remain open.** The app has not been deployed from the master repository. Confirm hosting requirements for the browser FFmpeg engine before choosing a release target.
-
-The prior handoff reported that a Lovable edit was blocked by a workspace credit limit on October 12. Current credit availability was not exposed by the project-status check.
+- Framewise was built and first tested on Apple M1. Windows and Linux have not yet been verified.
+- The production build passed on October 16 using dependencies already present in the checkout. A fresh install from the Bun lockfile has not been verified.
+- The first-use walkthrough was a manual check, not a full browser, operating-system, codec, file-size, or accessibility matrix. More real conversion and output checks are still needed.
+- Browser FFmpeg can be slow or run out of memory on large files. Files above roughly 1.5 GB may exceed available memory; desktop FFmpeg is the fallback for larger jobs.
+- There is no automated test suite with broad media-workflow coverage.
+- The repository has no public deployment. Hosting and distribution of the FFmpeg WebAssembly core need a deliberate review before inviting a wider audience.
+- This change proposes MIT for original Framewise code and project documentation. The browser core has separate upstream licensing; see the README before bundling or redistributing it.
 
 ## Recommended next steps
 
-1. Complete a fresh install and a small real conversion using the README instructions.
-2. Check one batch, folder save, and download fallback in current desktop browsers.
-3. Try the setup on Windows and Linux, then update the supported-platform note with what was actually verified.
-4. Choose a license and decide whether testers should use a public GitHub repo, a hosted demo, or both.
-5. Choose and configure hosting if people should try the app without installing it.
+1. Verify a fresh Bun install and a representative conversion on a clean setup.
+2. Check browser conversion, batch output, folder saving, and download fallback in current desktop browsers.
+3. Validate Windows and Linux before describing them as tested.
+4. Review the proposed MIT notice and third-party FFmpeg core terms, then decide when to make the repository public.
+5. Choose a hosted-demo setup and keep the FFmpeg core's delivery and source notices in view.
+6. Collect user feedback through the GitHub issue forms after the repository is public.
+7. Use early feedback to shape V2, including a clear, user-controlled FFmpeg engine update check.
