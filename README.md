@@ -26,34 +26,31 @@ Browser conversion can be slower than desktop FFmpeg and uses browser memory. Th
 
 - A desktop computer running a current version of macOS, Windows, or Linux
 - [Git](https://git-scm.com/downloads) to download the source
-- The current stable release of [Bun](https://bun.sh/docs/installation) to install the project dependencies and run the app. This repository includes `bun.lock` so Bun can use the project’s saved dependency versions.
+- [Node.js 22.12.0 or newer](https://nodejs.org/en/download). Use a currently supported LTS release; Node.js 24 is the recommended LTS line as of October 2026. Node.js includes npm, which this repository uses to install the exact versions recorded in `package-lock.json`.
 - A current desktop browser with WebAssembly and Web Worker support. Chrome, Edge, Firefox, and Safari are suitable starting points.
 - An internet connection to clone the repository, install dependencies, and download the browser FFmpeg engine on its first run
 
 **Desktop FFmpeg is optional.** You do not need FFmpeg installed on your computer to convert files in the browser. Install it separately if you want to run copied commands from a terminal. Start at [FFmpeg’s download page](https://ffmpeg.org/download.html) and follow its links for your operating system. After installation, open a new terminal and confirm `ffmpeg -version` works.
 
+Copied desktop commands and downloaded command scripts use POSIX shell syntax. On Windows, run them in Git Bash or WSL; native PowerShell and Command Prompt syntax is not generated yet. This limitation does not affect **Run in browser**.
+
 Directly saving output to a chosen folder is supported in Chrome and Edge on desktop. Other browsers can download each finished file individually.
 
 ## Install and run Framewise
 
-### 1. Install Git and Bun
+### 1. Install Git and Node.js
 
-Install Git from [git-scm.com/downloads](https://git-scm.com/downloads). Install Bun by following the instructions for your operating system at [bun.sh/docs/installation](https://bun.sh/docs/installation).
+Install Git from [git-scm.com/downloads](https://git-scm.com/downloads). Install the current Node.js LTS release from [nodejs.org](https://nodejs.org/en/download); npm is included with Node.js.
 
-On macOS or Linux, Bun’s official installer can also be run from Terminal:
-
-```sh
-curl -fsSL https://bun.sh/install | bash
-```
-
-On Windows, use the PowerShell instructions on Bun’s installation page. After installing, close and reopen the terminal, then check both tools:
+Close and reopen your terminal after installation, then check that the tools are available:
 
 ```sh
 git --version
-bun --version
+node --version
+npm --version
 ```
 
-If `bun` is reported as an unknown command, reopen the terminal first. Bun’s installation page also has steps for adding Bun to your PATH.
+Use Node.js 22.12.0 or newer and npm 10 or newer.
 
 ### 2. Download the repository
 
@@ -68,18 +65,18 @@ The repository is currently private. You need access from the repository owner t
 
 ### 3. Install the saved dependencies
 
-Run this from the `framewise` folder—the folder that contains `package.json` and `bun.lock`:
+Run this from the `framewise` folder—the folder that contains `package.json` and `package-lock.json`:
 
 ```sh
-bun install --frozen-lockfile
+npm ci
 ```
 
-Wait for the install to finish. If you see an error saying `package.json` cannot be found, check that the terminal is inside the `framewise` project folder before continuing.
+`npm ci` installs the versions saved in `package-lock.json`. If you see an error saying `package.json` cannot be found, check that the terminal is inside the `framewise` project folder before continuing.
 
 ### 4. Start the app
 
 ```sh
-bun run dev
+npm run dev
 ```
 
 Leave that terminal window open. The terminal prints the local address for the app; open that address in your browser. It is usually `http://localhost:5173`. If that address is already in use, Vite prints a different one—use the address shown in the terminal.
@@ -101,8 +98,8 @@ To stop the local app, return to the terminal and press **Ctrl+C**.
 From the project folder:
 
 ```sh
-bun run build
-bun run preview
+npm run build
+npm run preview
 ```
 
 The build command prepares the app for hosting. The preview command serves that build on your computer so you can inspect it. The project does not currently include a configured public deployment.
@@ -111,7 +108,7 @@ The build command prepares the app for hosting. The preview command serves that 
 
 You can give an AI coding agent this repository URL and ask it to set up Framewise on your computer. This project does not need an AI API key.
 
-> Set up Framewise from this repository for local use. Read README.md and PROJECT_STATUS.md first. Use Bun and run bun install --frozen-lockfile, then bun run dev. Do not add or upload my media files. Tell me the local browser address when the app starts, and explain that the first conversion downloads the pinned FFmpeg WebAssembly engine from unpkg.
+> Set up Framewise from this repository for local use. Read README.md and PROJECT_STATUS.md first. Use Node.js 22.12.0 or newer with npm 10 or newer. Run npm ci, then npm run dev. Do not add or upload my media files. Tell me the local browser address when the app starts, and explain that the first conversion downloads the pinned FFmpeg WebAssembly engine from unpkg.
 
 The agent should explain each step and leave your media files on your device. The first browser conversion still needs an internet connection to download the FFmpeg engine.
 
@@ -120,10 +117,12 @@ The agent should explain each step and leave your media files on your device. Th
 | What you see | What to try |
 | --- | --- |
 | `package.json` not found | Change into the `framewise` folder, then run the command again. |
-| `bun` is not recognized | Close and reopen the terminal. If it still fails, follow Bun’s PATH instructions. |
+| `node` or `npm` is not recognized | Close and reopen the terminal after installing Node.js. If either command is still missing, check that the Node.js installation folder is on your PATH. |
+| `npm ci` says the lockfile and package file disagree | Check that `package.json` and `package-lock.json` came from the same repository revision and run the command from the project folder. |
+| npm reports `edgesOut` or `Cannot read properties of null` | Use `npm ci` from the project root with the matching `package-lock.json`. If it continues, include your Node.js and npm versions with the issue report. |
 | FFmpeg engine fails to load | Check your internet connection and allow access to `unpkg.com`, then refresh and try again. |
 | Browser cannot save directly to a folder | Use desktop Chrome or Edge, or choose the individual download option. |
-| `ffmpeg` is not recognized in your terminal | This affects copied desktop commands only. Install desktop FFmpeg and ensure it is available on your PATH. |
+| `ffmpeg` is not recognized in your terminal | This affects copied desktop commands only. Install desktop FFmpeg and ensure it is available on your PATH. On Windows, use Git Bash or WSL for the generated command syntax. |
 | A large file stops or runs out of memory | Try a smaller file or run the copied command with desktop FFmpeg. |
 
 ## Technology and references
@@ -131,7 +130,7 @@ The agent should explain each step and leave your media files on your device. Th
 - App: React, TypeScript, TanStack Start/Router, Vite, Tailwind CSS, Radix UI, and Lucide icons
 - Browser processing: [FFmpeg.wasm](https://ffmpegwasm.netlify.app/docs/)
 - Desktop media toolkit: [FFmpeg documentation](https://ffmpeg.org/documentation.html), including [commands](https://ffmpeg.org/ffmpeg.html), [filters](https://ffmpeg.org/ffmpeg-filters.html), [codecs](https://ffmpeg.org/ffmpeg-codecs.html), and [formats](https://ffmpeg.org/ffmpeg-formats.html)
-- Project tools: [Bun](https://bun.sh/docs), [Git](https://git-scm.com/doc), [React](https://react.dev/learn), [TanStack Start](https://tanstack.com/start/latest/docs/framework/react/overview), and [Vite](https://vite.dev/guide/)
+- Project tools: [Node.js](https://nodejs.org/en/download), [npm](https://docs.npmjs.com/), [Git](https://git-scm.com/doc), [React](https://react.dev/learn), [TanStack Start](https://tanstack.com/start/latest/docs/framework/react/overview), and [Vite](https://vite.dev/guide/)
 - [Framewise V1 retrospective PDF](public/v1-retrospective.pdf) — project timeline, interface captures, lessons, and references. The interactive retrospective page is also available at `/v1-retrospective` while the local app is running.
 
 ## Feedback and contributions

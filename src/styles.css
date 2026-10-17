@@ -1,6 +1,5 @@
 @import "tailwindcss" source(none);
 @source "../src";
-@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -14,7 +13,6 @@
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -44,11 +42,6 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -92,11 +85,6 @@
   --border: oklch(0.91 0.012 85);
   --input: oklch(0.9 0.014 85);
   --ring: oklch(0.6 0.18 285);
-  --chart-1: oklch(0.52 0.22 290);
-  --chart-2: oklch(0.6 0.2 255);
-  --chart-3: oklch(0.6 0.14 160);
-  --chart-4: oklch(0.75 0.15 75);
-  --chart-5: oklch(0.58 0.21 25);
   --sidebar: oklch(0.975 0.01 85);
   --sidebar-foreground: oklch(0.22 0.035 275);
   --sidebar-primary: oklch(0.52 0.22 290);
