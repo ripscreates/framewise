@@ -405,13 +405,13 @@
           <div class="hero-copy">
             <div class="hero-label"><span>V1 retrospective</span> · October 2026</div>
             <h1 class="display" id="hero-title">From “I need a video…” to <span class="marker">one command.</span></h1>
-            <p class="hero-lede">Framewise helps people start with the result they want, then makes FFmpeg feel like a series of small, understandable choices.</p>
+            <p class="hero-lede">Framewise starts with the result you want, then turns FFmpeg into a series of small, understandable choices.</p>
             <div class="hero-actions">
               <a class="button" href="#journey">Follow the build story <span aria-hidden="true">↓</span></a>
               <a class="button secondary" href="#interface">See V1 in action</a>
             </div>
             <ul class="hero-facts" aria-label="V1 snapshot">
-              <li>7 guided workflows</li><li>Browser + desktop</li><li>Local run history</li>
+              <li>7 guided workflows</li><li>Browser or desktop FFmpeg</li><li>Local run history</li>
             </ul>
           </div>
           <div class="hero-art" aria-label="Framewise Create screen capture">
@@ -435,15 +435,15 @@
           <div class="section-heading">
             <p class="eyebrow">A little timeline</p>
             <h2 class="display" id="journey-title">A prototype became a project we could keep building.</h2>
-            <p>Six small milestones moved Framewise from a visual-builder idea to a working local app with a clear source of truth.</p>
+            <p>Six small milestones moved Framewise from a visual-builder prototype to a working local app with one home for the code.</p>
           </div>
           <div class="timeline">
             <article class="timeline-card"><span class="step" aria-hidden="true">01</span><span class="date">Oct 12</span><h3>The first Lovable prototype</h3><p>Create, History, and Help set the direction: plain language up front, FFmpeg detail when it helps.</p></article>
             <article class="timeline-card"><span class="step" aria-hidden="true">02</span><span class="date">Oct 12–13</span><h3>Choose one home for the code</h3><p>The Lovable export stayed separate. The private <code>framewise</code> repository became the master project.</p></article>
-            <article class="timeline-card"><span class="step" aria-hidden="true">03</span><span class="date">Oct 13</span><h3>Write down what was missing</h3><p>A project-status report and next steps made the app easier to continue outside its original builder.</p></article>
-            <article class="timeline-card"><span class="step" aria-hidden="true">04</span><span class="date">Oct 13–14</span><h3>Keep V1’s “AI” small and local</h3><p>Keyword matching was enough for a first guide. No model API, account, or secret key was needed.</p></article>
-            <article class="timeline-card"><span class="step" aria-hidden="true">05</span><span class="date">Oct 14–15</span><h3>Make commands and setup clearer</h3><p>Folder-aware desktop paths, more useful unknown-request guidance, and official FFmpeg references improved the handoff.</p></article>
-            <article class="timeline-card"><span class="step" aria-hidden="true">06</span><span class="date">Oct 15</span><h3>Run the first-use walkthrough</h3><p>Resize, a two-file batch, folder input/output, Help, and History repeat were walked through manually.</p></article>
+            <article class="timeline-card"><span class="step" aria-hidden="true">03</span><span class="date">Oct 13</span><h3>Write down what was missing</h3><p>A project-status report and next steps made it easier to continue the app outside its original builder.</p></article>
+            <article class="timeline-card"><span class="step" aria-hidden="true">04</span><span class="date">Oct 13–14</span><h3>Keep V1’s “AI” small and local</h3><p>Keyword matching was enough for a first guide — no model API, account, or secret key needed.</p></article>
+            <article class="timeline-card"><span class="step" aria-hidden="true">05</span><span class="date">Oct 14–15</span><h3>Make commands and setup clearer</h3><p>Folder-aware desktop paths, friendlier guidance when the helper can't match a request, and official FFmpeg references improved the handoff.</p></article>
+            <article class="timeline-card"><span class="step" aria-hidden="true">06</span><span class="date">Oct 15</span><h3>Run the first-use walkthrough</h3><p>A manual walkthrough covered resize, a two-file batch, folder input and output, Help, and History repeat.</p></article>
           </div>
         </div>
       </section>
@@ -454,9 +454,9 @@
             <div class="section-heading">
               <p class="eyebrow">A peek inside V1</p>
               <h2 class="display" id="interface-title">Three screens. One friendly path through the work.</h2>
-              <p>These are browser-print captures from the local V1 app, made October 15, 2026.</p>
+              <p>Captured from the local V1 app on October 15, 2026.</p>
             </div>
-            <p class="tiny-note">The captures show the product as it was tested locally; they are not screenshots of a hosted production release.</p>
+            <p class="tiny-note">Captured during local testing — not screenshots of a hosted production release.</p>
           </div>
           <div class="screens-grid">
             <figure class="screen-card">
@@ -483,9 +483,9 @@
             <p>V1’s helper is intentionally modest: it matches words locally to supported workflows and presets. Then the user stays in control of each next step.</p>
             <div class="flow-steps" aria-label="Framewise workflow">
               <article class="flow-step"><span class="num">1</span><h3>Describe</h3><p>Say what you want to make.</p></article>
-              <article class="flow-step"><span class="num">2</span><h3>Choose</h3><p>Pick or skip the available steps.</p></article>
+              <article class="flow-step"><span class="num">2</span><h3>Choose</h3><p>Pick the steps you need; skip the rest.</p></article>
               <article class="flow-step"><span class="num">3</span><h3>Review</h3><p>See the command and its meaning.</p></article>
-              <article class="flow-step"><span class="num">4</span><h3>Run</h3><p>Use browser WebAssembly or desktop FFmpeg.</p></article>
+              <article class="flow-step"><span class="num">4</span><h3>Run</h3><p>Run it in the browser, or copy the command for desktop FFmpeg.</p></article>
               <article class="flow-step"><span class="num">5</span><h3>Repeat</h3><p>Keep settings in local browser history.</p></article>
             </div>
           </div>
@@ -504,7 +504,7 @@
             <article class="lesson"><span class="symbol" aria-hidden="true">&gt;_</span><h3>Show what will happen</h3><p>A readable summary plus a full, copyable command helps the user trust the result and stay in control.</p></article>
             <article class="lesson"><span class="symbol" aria-hidden="true">▧</span><h3>Batch needs a clear status</h3><p>Show the file count, shared settings, destination, and each file’s progress—not just a multi-select.</p></article>
           </div>
-          <div class="truth-note"><span aria-hidden="true">✦</span><span><strong>Evidence note:</strong> the first-use walkthrough was a manual check, not a full browser, codec, file-size, or compatibility matrix. There were no formal usability sessions or analytics.</span></div>
+          <div class="truth-note"><span aria-hidden="true">✦</span><span><strong>Evidence note:</strong> the first-use walkthrough was a manual check — not a full browser, codec, file-size, or compatibility matrix. There were no formal usability sessions or analytics.</span></div>
         </div>
       </section>
 
@@ -522,7 +522,7 @@
               <article class="next-item"><div><h3>Make batch mode unmistakable</h3><p>Keep the shared settings, file count, and destination visible as the queue moves.</p></div></article>
               <article class="next-item"><div><h3>Explain the first engine download</h3><p>Set expectations before the first run, then show progress and a useful recovery step.</p></div></article>
             </div>
-            <p class="hypothesis">A useful next session: ask first-time users to compress a clip, make a vertical version, and process a folder. Watch for task choice, command confidence, saved output, and repeatability.</p>
+            <p class="hypothesis">A useful next session: ask first-time users to compress a clip, make a vertical version, and process a folder — then watch for task choice, command confidence, saved output, and repeatability.</p>
           </div>
         </div>
       </section>
@@ -532,12 +532,12 @@
           <div class="section-heading">
             <p class="eyebrow">The V1 toolkit</p>
             <h2 class="display" id="stack-title">A browser app, with a focused media engine.</h2>
-            <p>No cloud account or application database is required for the V1 workflow.</p>
+            <p>No account or app database is needed. The engine downloads on first use, media is processed in the browser, and run details are saved locally.</p>
           </div>
           <div class="stack-grid">
-            <article class="stack-card"><span class="stack-kicker">Interface</span><h3>React + TypeScript</h3><p>Typed UI and browser behavior for the guided workflow.</p><div class="stack-tags"><span>React 19</span><span>TypeScript</span></div></article>
+            <article class="stack-card"><span class="stack-kicker">Interface</span><h3>React + TypeScript</h3><p>Typed UI for the guided workflow.</p><div class="stack-tags"><span>React 19</span><span>TypeScript</span></div></article>
             <article class="stack-card"><span class="stack-kicker">App framework</span><h3>TanStack Start</h3><p>App routes for Create, History, and Help.</p><div class="stack-tags"><span>TanStack Start</span><span>TanStack Router</span></div></article>
-            <article class="stack-card"><span class="stack-kicker">Developer workflow</span><h3>Vite + Nitro</h3><p>Local development and a production build; Cloudflare output is configured, not deployed.</p><div class="stack-tags"><span>Vite 8</span><span>Nitro</span></div></article>
+            <article class="stack-card"><span class="stack-kicker">Developer workflow</span><h3>Vite + Nitro</h3><p>Local dev server and production builds; Cloudflare deployment is configured but not live.</p><div class="stack-tags"><span>Vite 8</span><span>Nitro</span></div></article>
             <article class="stack-card"><span class="stack-kicker">Look and controls</span><h3>Tailwind + Radix</h3><p>Responsive styling and accessible UI primitives, with Lucide icons.</p><div class="stack-tags"><span>Tailwind CSS 4</span><span>Radix UI</span><span>Lucide</span></div></article>
             <article class="stack-card"><span class="stack-kicker">Media processing</span><h3>FFmpeg WebAssembly</h3><p>Runs conversions in the browser tab. The engine is fetched from a public CDN on first use.</p><div class="stack-tags"><span>@ffmpeg/ffmpeg</span><span>@ffmpeg/util</span></div></article>
             <article class="stack-card"><span class="stack-kicker">Local by design</span><h3>Browser APIs + storage</h3><p>File selection and outputs use browser APIs. Run settings stay in localStorage on this device.</p><div class="stack-tags"><span>File APIs</span><span>localStorage</span><span>No app database</span></div></article>
@@ -550,11 +550,11 @@
           <div class="setup-panel">
             <div>
               <p class="eyebrow">Want to try it locally?</p>
-              <h2 class="display">A laptop, Node.js, and the project folder are enough.</h2>
+              <h2 class="display">A laptop, Bun, and the project folder are enough.</h2>
               <p>From the Framewise repository root, install the app packages and start the local development server:</p>
             </div>
-            <div class="code-box" aria-label="Local setup commands"><pre>npm install
-npm run dev</pre></div>
+            <div class="code-box" aria-label="Local setup commands"><pre>bun install --frozen-lockfile
+bun run dev</pre></div>
           </div>
           <div class="local-vs-desktop">
             <p><strong>Browser processing:</strong> Framewise uses FFmpeg WebAssembly. You do not need to install native FFmpeg to try conversions in the app.</p>
@@ -569,12 +569,12 @@ npm run dev</pre></div>
           <div class="reference-group">
             <h3>Local setup and media tools</h3>
             <div class="reference-grid">
-              <a class="reference-link" href="https://nodejs.org/en/download/" target="_blank" rel="noreferrer"><span><strong>Node.js downloads</strong><small>npm is included with Node.js</small></span><span class="arrow" aria-hidden="true">↗</span></a>
-              <a class="reference-link" href="https://docs.npmjs.com/downloading-and-installing-node-js-and-npm" target="_blank" rel="noreferrer"><span><strong>Install Node.js + npm</strong><small>Official npm setup guide</small></span><span class="arrow" aria-hidden="true">↗</span></a>
+              <a class="reference-link" href="https://bun.sh/docs/installation" target="_blank" rel="noreferrer"><span><strong>Install Bun</strong><small>Runtime + package manager Framewise uses</small></span><span class="arrow" aria-hidden="true">↗</span></a>
+              <a class="reference-link" href="https://bun.sh/docs" target="_blank" rel="noreferrer"><span><strong>Bun docs</strong><small>Install, run scripts, and manage deps</small></span><span class="arrow" aria-hidden="true">↗</span></a>
               <a class="reference-link" href="https://git-scm.com/downloads" target="_blank" rel="noreferrer"><span><strong>Git downloads</strong><small>Clone the Framewise repository</small></span><span class="arrow" aria-hidden="true">↗</span></a>
               <a class="reference-link" href="https://ffmpeg.org/download.html" target="_blank" rel="noreferrer"><span><strong>Get desktop FFmpeg</strong><small>Official download page and OS builds</small></span><span class="arrow" aria-hidden="true">↗</span></a>
               <a class="reference-link" href="https://ffmpegwasm.netlify.app/docs/getting-started/installation/" target="_blank" rel="noreferrer"><span><strong>FFmpeg WebAssembly</strong><small>Browser engine install guide</small></span><span class="arrow" aria-hidden="true">↗</span></a>
-              <a class="reference-link" href="https://github.com/ripscreates/framewise" target="_blank" rel="noreferrer"><span><strong>Framewise source</strong><small>Master project repository</small></span><span class="arrow" aria-hidden="true">↗</span></a>
+              <a class="reference-link" href="https://github.com/ripscreates/framewise" target="_blank" rel="noreferrer"><span><strong>Framewise source</strong><small>Project repository on GitHub</small></span><span class="arrow" aria-hidden="true">↗</span></a>
             </div>
           </div>
 
@@ -606,8 +606,8 @@ npm run dev</pre></div>
 
     <footer class="site-footer">
       <div class="wrap footer-row">
-        <span>Framewise V1 · a working project retrospective · October 2026</span>
-        <span><a href="https://github.com/ripscreates/framewise" target="_blank" rel="noreferrer">Built in the Framewise master repo ↗</a></span>
+        <span>Framewise V1 · a project retrospective · October 2026</span>
+        <span><a href="https://github.com/ripscreates/framewise" target="_blank" rel="noreferrer">Built in the Framewise repository ↗</a></span>
       </div>
     </footer>
   </body>
