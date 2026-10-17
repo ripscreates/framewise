@@ -1,5 +1,13 @@
 # Framewise
 
+**TL;DR**
+FFmpeg GUI guide to help you get the command to edit or convert video, audio, or make gifs!
+Runs local in Web Browser, no uploading, no internet needed after 1st run.
+- just need npm & latest web browser.
+- keeps track of previous history, to run again later.
+- can do bulk files from folder too!
+
+
 **FFmpeg, made friendly.** Framewise is an early-stage app that turns common media tasks into clear, reviewable FFmpeg steps. Choose what you want to do, adjust the options, then run the conversion in your browser or copy the command for desktop FFmpeg.
 
 > **V1 note:** Framewise was originally built and first tested on an Apple M1 Mac. Automated clean-install and production-build checks pass on macOS, Linux, and Windows with Node.js 22.12.0 and 24.x. Browser-based conversion and folder-saving behavior still need hands-on checks across operating systems and browsers. Please include your operating system and browser with any issue report.
@@ -146,3 +154,5 @@ The original Framewise source code and project documentation in this repository 
 Third-party software and services keep their own licenses and terms. In particular, Framewise loads `@ffmpeg/core@0.12.10` from unpkg for browser conversions. The package metadata declares that core package as **GPL-2.0-or-later**. The `@ffmpeg/ffmpeg` JavaScript wrapper is MIT-licensed, while the ffmpeg.wasm project explains that its WebAssembly core follows the licenses of FFmpeg and the external libraries included in its build. See the [ffmpeg.wasm FAQ](https://github.com/ffmpegwasm/ffmpeg.wasm/blob/main/apps/website/docs/faq.md), [core package metadata](https://github.com/ffmpegwasm/ffmpeg.wasm/blob/main/packages/core/package.json), and [FFmpeg's licensing guidance](https://ffmpeg.org/legal.html).
 
 The Framewise MIT license does not relicense FFmpeg, the WebAssembly core, other dependencies, web fonts, or codecs. Before bundling or redistributing the media engine, check the exact core source, build configuration, and applicable third-party notices.
+
+Support your FFmpeg devs https://www.ffmpeg.org/donations.html
