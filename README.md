@@ -1,7 +1,7 @@
 # Framewise
 
 **TL;DR**
-FFmpeg GUI guide to help you get the command to trim, resize or convert video, audio, & make gifs too!
+FFmpeg GUI guide to help you get the command line to trim, resize or convert video, audio, & make gifs too!
 Runs in your browser; your media stays on your device. 
 Keeps track of previous history, to run again later.
 Can also process bulk files from folder too!
@@ -14,12 +14,10 @@ Desktop FFmpeg is optional for running copied commands._
 
 **FFmpeg, made friendly.** Framewise is a web app that turns common media tasks into clear, reviewable FFmpeg steps. Choose what you want to do, adjust the options, then run the conversion in your browser or copy the command for desktop FFmpeg.
 
-<p><img src="docs/assets/framewise-create.png" alt="Framewise guided task setup" width="900" /></p>
-Framewise guided setup screen
+<p><img src="docs/assets/framewise-create.png" alt="Framewise guided task setup" width="450" /></p>
 
-> **V1 note:** Framewise was originally built and first tested on an Apple M1 Mac. Automated clean-install and production-build checks pass on macOS, Linux, and Windows with Node.js 22.12.0 and 24.x. Browser-based conversion and folder-saving behavior still need hands-on checks across operating systems and browsers. Please include your operating system and browser with any issue report.
+Framewise's opening screen: guided task setup.
 
-See [project status and remaining validation](PROJECT_STATUS.md) for current gaps and next steps.
 
 ## What you can do
 
@@ -97,9 +95,6 @@ npm run dev
 Leave that terminal window open. The terminal prints the local address for the app; open that address in your browser. It is usually `http://localhost:5173`. If that address is already in use, Vite prints a different one—use the address shown in the terminal.
 
 ### 5. Try a first conversion
-
-<p><img src="docs/assets/framewise-selectfiles.png" alt="Framewise select file(s)..." width="900" /></p>
-<br><br>
 1. Choose a small audio or video file that you are comfortable using as a test.
 2. Describe the task or select a workflow such as **Convert**, **Compress**, or **Trim**.
 3. Choose or skip the suggested steps until you reach the review screen.
@@ -109,6 +104,10 @@ Leave that terminal window open. The terminal prints the local address for the a
 7. Open **History** to review the completed run. To repeat it, select the task and add the input files again.
 
 To stop the local app, return to the terminal and press **Ctrl+C**.
+
+<p><img src="docs/assets/framewise-selectfiles.png" alt="Framewise select file(s)..." width="450" /></p>
+<br><br>
+
 
 ## Optional: build a production version
 
@@ -142,6 +141,7 @@ The agent should explain each step and leave your media files on your device. Th
 | `ffmpeg` is not recognized in your terminal | This affects copied desktop commands only. Install desktop FFmpeg and ensure it is available on your PATH. On Windows, use Git Bash or WSL for the generated command syntax. |
 | A large file stops or runs out of memory | Try a smaller file or run the copied command with desktop FFmpeg. |
 
+
 ## Technology and references
 
 - App: React, TypeScript, TanStack Start/Router, Vite, Tailwind CSS, Radix UI, and Lucide icons
@@ -151,6 +151,11 @@ The agent should explain each step and leave your media files on your device. Th
 - [Framewise V1 retrospective PDF](public/v1-retrospective.pdf) — project timeline, interface captures, lessons, and references. The interactive retrospective page is also available at `/v1-retrospective` while the local app is running.
 
 ## Feedback and contributions
+
+> **V1 note:** Framewise was originally built and first tested on an Apple M1 Mac. Automated clean-install and production-build checks pass on macOS, Linux, and Windows with Node.js 22.12.0 and 24.x. Browser-based conversion and folder-saving behavior still need hands-on checks across operating systems and browsers. Please include your operating system and browser with any issue report.
+
+See [project status and remaining validation](PROJECT_STATUS.md) for current gaps and next steps.
+
 
 Use [GitHub Issues](https://github.com/ripscreates/framewise/issues/new/choose) to report a problem or suggest an improvement. The issue forms ask for the details that help reproduce a problem, including operating system, browser, the steps you took, and whether you used browser conversion or a copied desktop command. Please do not attach private media files; remove personal file paths from screenshots or logs.
 
