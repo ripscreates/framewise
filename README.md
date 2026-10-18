@@ -1,24 +1,26 @@
 # Framewise
 
 **TL;DR**
-FFmpeg GUI guide to help you get the command to edit or convert video, audio, or make gifs!
-Runs in your browser; your media stays on your device. An internet connection is needed to download the FFmpeg engine on first conversion.
-- Just need Node.js (includes npm) and a current desktop browser. Desktop FFmpeg is optional for running copied commands.
-- keeps track of previous history, to run again later.
-- can do bulk files from folder too!
+FFmpeg GUI guide to help you get the command to trim, resize or convert video, audio, & make gifs too!
+Runs in your browser; your media stays on your device. 
+Keeps track of previous history, to run again later.
+Can also process bulk files from folder too!
+
+_- Just need Node.js (includes npm) and a current desktop browser. 
+- An internet connection is needed to download the FFmpeg engine on first conversion.
+Desktop FFmpeg is optional for running copied commands._
 
 
 <details>
 <summary>See the interface</summary>
 
-<p><img src="docs/assets/framewise-create-oct-15-2026.png" alt="Framewise guided task setup" width="900" /></p>
-<p><img src="docs/assets/framewise-help-oct-15-2026.png" alt="Framewise capability guide" width="900" /></p>
-<p><img src="docs/assets/framewise-history-oct-15-2026.png" alt="Framewise run history" width="900" /></p>
+<p><img src="docs/assets/framewise-create.png" alt="Framewise guided task setup" width="900" /></p>
+<p><img src="docs/assets/framewise-selectfiles.png" alt="Framewise select file(s)..." width="900" /></p>
 
 </details>
 
 
-**FFmpeg, made friendly.** Framewise is an early-stage app that turns common media tasks into clear, reviewable FFmpeg steps. Choose what you want to do, adjust the options, then run the conversion in your browser or copy the command for desktop FFmpeg.
+**FFmpeg, made friendly.** Framewise is a web app that turns common media tasks into clear, reviewable FFmpeg steps. Choose what you want to do, adjust the options, then run the conversion in your browser or copy the command for desktop FFmpeg.
 
 > **V1 note:** Framewise was originally built and first tested on an Apple M1 Mac. Automated clean-install and production-build checks pass on macOS, Linux, and Windows with Node.js 22.12.0 and 24.x. Browser-based conversion and folder-saving behavior still need hands-on checks across operating systems and browsers. Please include your operating system and browser with any issue report.
 
