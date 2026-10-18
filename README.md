@@ -74,7 +74,7 @@ git clone https://github.com/ripscreates/framewise.git
 cd framewise
 ```
 
-The repository is currently private. You need access from the repository owner to clone it; these instructions will work for anyone once the repository is made public.
+The repository is public, so anyone can clone it with the commands above.
 
 ### 3. Install the saved dependencies
 
