@@ -6,9 +6,10 @@ Runs in your browser; your media stays on your device.
 Keeps track of previous history, to run again later.
 Can also process bulk files from folder too!
 
-- Just need FFmpeg, Node.js (includes npm) and a current desktop browser. 
+- Just need Node.js (includes npm), FFmpeg and a current desktop browser. 
 - An internet connection is needed to download the FFmpeg engine on first conversion.
-Desktop FFmpeg is optional for running copied commands._
+- Desktop FFmpeg is optional for running copied commands in terminal console.
+
 
 
 
