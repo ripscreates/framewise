@@ -115,9 +115,9 @@ From the project folder:
 <br><br>
 <p><img src="docs/assets/Framewise-trim.png" alt="Framewise trim file output by timecode." width="600" /></p>
 <br><br>
-<p><img src="docs/assets/framewise-script.png" alt="Framewise shows what each section in command means." width="600" /></p>
+<p><img src="docs/assets/Framewise-script.png" alt="Framewise shows what each section in command means." width="600" /></p>
 <br><br>
-<p><img src="docs/assets/framewise-history.png" alt="Framewise history screen, to re-run or save script" width="600" /></p>
+<p><img src="docs/assets/Framewise-history.png" alt="Framewise history screen, to re-run or save script" width="600" /></p>
 <br><br>
 
 
