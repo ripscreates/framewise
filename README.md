@@ -6,21 +6,16 @@ Runs in your browser; your media stays on your device.
 Keeps track of previous history, to run again later.
 Can also process bulk files from folder too!
 
-_- Just need Node.js (includes npm) and a current desktop browser. 
+- Just need Node.js (includes npm) and a current desktop browser. 
 - An internet connection is needed to download the FFmpeg engine on first conversion.
 Desktop FFmpeg is optional for running copied commands._
 
 
-<details>
-<summary>See the interface</summary>
-
-<p><img src="docs/assets/framewise-create.png" alt="Framewise guided task setup" width="900" /></p>
-<p><img src="docs/assets/framewise-selectfiles.png" alt="Framewise select file(s)..." width="900" /></p>
-
-</details>
-
 
 **FFmpeg, made friendly.** Framewise is a web app that turns common media tasks into clear, reviewable FFmpeg steps. Choose what you want to do, adjust the options, then run the conversion in your browser or copy the command for desktop FFmpeg.
+
+<p><img src="docs/assets/framewise-create.png" alt="Framewise guided task setup" width="900" /></p>
+Framewise guided setup screen
 
 > **V1 note:** Framewise was originally built and first tested on an Apple M1 Mac. Automated clean-install and production-build checks pass on macOS, Linux, and Windows with Node.js 22.12.0 and 24.x. Browser-based conversion and folder-saving behavior still need hands-on checks across operating systems and browsers. Please include your operating system and browser with any issue report.
 
@@ -34,7 +29,7 @@ See [project status and remaining validation](PROJECT_STATUS.md) for current gap
 - Review and copy the FFmpeg command before running it
 - Search browser-local history and repeat a previous setup
 
-The guided “describe what you want” helper uses local keyword matching and presets. It does not call an AI service and does not need an OpenAI API key. The guided workflows cover a useful subset of FFmpeg; they do not expose every FFmpeg option.
+_The guided “describe what you want” helper uses local keyword matching and presets. It does not call an AI service and does not need an OpenAI API key. The guided workflows cover a useful subset of FFmpeg; they do not expose every FFmpeg option._
 
 ## How file processing works
 
@@ -103,6 +98,8 @@ Leave that terminal window open. The terminal prints the local address for the a
 
 ### 5. Try a first conversion
 
+<p><img src="docs/assets/framewise-selectfiles.png" alt="Framewise select file(s)..." width="900" /></p>
+<br><br>
 1. Choose a small audio or video file that you are comfortable using as a test.
 2. Describe the task or select a workflow such as **Convert**, **Compress**, or **Trim**.
 3. Choose or skip the suggested steps until you reach the review screen.
