@@ -14,7 +14,7 @@ Desktop FFmpeg is optional for running copied commands._
 
 **FFmpeg, made friendly.** Framewise is a web app that turns common media tasks into clear, reviewable FFmpeg steps. Choose what you want to do, adjust the options, then run the conversion in your browser or copy the command for desktop FFmpeg.
 
-<p><img src="docs/assets/framewise-create.png" alt="Framewise guided task setup" width="450" /></p>
+<p><img src="docs/assets/framewise-create.png" alt="Framewise guided task setup" width="600" /></p>
 
 Framewise's opening screen: guided task setup.
 
@@ -105,7 +105,19 @@ Leave that terminal window open. The terminal prints the local address for the a
 
 To stop the local app, return to the terminal and press **Ctrl+C**.
 
-<p><img src="docs/assets/framewise-selectfiles.png" alt="Framewise select file(s)..." width="450" /></p>
+## Screenshots
+
+From the project folder:
+
+<p><img src="docs/assets/framewise-create.png" alt="Framewise starting screen of guided task setup." width="600" /></p>
+<br><br>
+<p><img src="docs/assets/framewise-selectfiles.png" alt="Framewise select file(s)..." width="600" /></p>
+<br><br>
+<p><img src="docs/assets/Framewise-trim.png" alt="Framewise trim file output by timecode." width="600" /></p>
+<br><br>
+<p><img src="docs/assets/framewise-script.png" alt="Framewise shows what each section in command means." width="600" /></p>
+<br><br>
+<p><img src="docs/assets/framewise-history.png" alt="Framewise history screen, to re-run or save script" width="600" /></p>
 <br><br>
 
 
