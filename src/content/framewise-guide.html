@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>How to use Framewise — FFmpeg, made friendly</title>
+<meta name="description" content="A friendly, step-by-step guide to Framewise: say what you want in plain words, review the FFmpeg command, and run it in your browser or on your desktop." />
+<style>
+  :root {
+    color-scheme: light;
+    --paper: oklch(0.985 0.008 85);
+    --surface: oklch(0.997 0.003 85);
+    --surface-soft: oklch(0.97 0.012 85);
+    --ink: oklch(0.22 0.035 275);
+    --ink-soft: oklch(0.5 0.03 275);
+    --line: oklch(0.91 0.012 85);
+    --purple: oklch(0.52 0.22 290);
+    --purple-deep: oklch(0.36 0.15 290);
+    --purple-pale: oklch(0.955 0.02 290);
+    --blue-pale: oklch(0.95 0.035 255);
+    --mint-pale: oklch(0.95 0.035 160);
+    --amber-pale: oklch(0.96 0.035 85);
+    --display: "Sora", "Manrope", ui-sans-serif, system-ui, sans-serif;
+    --body: "Manrope", ui-sans-serif, system-ui, sans-serif;
+    --radius: 1.4rem;
+    --max: 62rem;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: var(--body);
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: var(--max); margin: 0 auto; padding: 0 clamp(1.25rem, 4vw, 2.5rem); }
+  nav.top {
+    position: sticky; top: 0; z-index: 10;
+    background: color-mix(in oklch, var(--paper) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav.top .wrap { display: flex; align-items: center; gap: 1rem; padding-top: .9rem; padding-bottom: .9rem; }
+  .brand { font-family: var(--display); font-weight: 800; letter-spacing: -.02em; text-decoration: none; color: var(--ink); }
+  .brand span { color: var(--purple); }
+  nav.top .links { margin-left: auto; display: flex; gap: .35rem; flex-wrap: wrap; }
+  nav.top a.link {
+    text-decoration: none; color: var(--ink-soft); font-size: .82rem; font-weight: 600;
+    padding: .45rem .8rem; border-radius: 999px; border: 1px solid transparent;
+  }
+  nav.top a.link:hover { color: var(--purple-deep); border-color: var(--line); background: var(--surface); }
+  .cta {
+    text-decoration: none; font-size: .82rem; font-weight: 700; color: #fff;
+    background: var(--purple); padding: .5rem 1rem; border-radius: 999px;
+  }
+  .cta:hover { background: var(--purple-deep); }
+  header.hero { padding: clamp(2.5rem, 7vw, 5rem) 0 2rem; }
+  .hero-grid { display: grid; grid-template-columns: 1fr; gap: 2rem; align-items: center; }
+  @media (min-width: 720px) { .hero-grid { grid-template-columns: 240px 1fr; } }
+  .mascot {
+    width: min(240px, 60vw); height: auto; display: block; margin: 0 auto;
+    filter: drop-shadow(0 18px 30px oklch(0.52 0.22 290 / 0.18));
+  }
+  .kicker {
+    display: inline-block; font-size: .75rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--purple-deep); background: var(--purple-pale);
+    padding: .35rem .8rem; border-radius: 999px; margin-bottom: 1rem;
+  }
+  h1.display {
+    font-family: var(--display); font-weight: 800; letter-spacing: -.03em;
+    font-size: clamp(2.2rem, 5.5vw, 3.6rem); line-height: 1.05; margin: 0 0 1rem;
+  }
+  h1.display em { font-style: normal; color: var(--purple); }
+  .lede { font-size: clamp(1.02rem, 2vw, 1.2rem); color: var(--ink-soft); max-width: 38rem; margin: 0; }
+  section.block { padding: 2.5rem 0; }
+  h2.section-title {
+    font-family: var(--display); font-weight: 800; letter-spacing: -.02em;
+    font-size: clamp(1.5rem, 3.4vw, 2.1rem); margin: 0 0 .5rem;
+  }
+  .section-sub { color: var(--ink-soft); margin: 0 0 1.75rem; max-width: 42rem; }
+  .cards { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+  @media (min-width: 720px) { .cards.three { grid-template-columns: repeat(3, 1fr); } .cards.two { grid-template-columns: repeat(2, 1fr); } }
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 1.4rem 1.5rem;
+  }
+  .card.tint-purple { background: var(--purple-pale); border-color: transparent; }
+  .card.tint-blue { background: var(--blue-pale); border-color: transparent; }
+  .card.tint-mint { background: var(--mint-pale); border-color: transparent; }
+  .card.tint-amber { background: var(--amber-pale); border-color: transparent; }
+  .card h3 { font-family: var(--display); font-size: 1.05rem; margin: 0 0 .4rem; letter-spacing: -.01em; }
+  .card p { margin: 0; font-size: .93rem; color: var(--ink-soft); }
+  .step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 1.7rem; height: 1.7rem; border-radius: 999px;
+    background: var(--purple); color: #fff; font-weight: 800; font-size: .85rem; margin-bottom: .7rem;
+  }
+  .steps { display: grid; grid-template-columns: 1fr; gap: 1rem; counter-reset: step; }
+  @media (min-width: 720px) { .steps { grid-template-columns: repeat(2, 1fr); } }
+  .step { position: relative; }
+  .step h3 { display: flex; align-items: center; gap: .6rem; }
+  .flow-note {
+    margin-top: 1.5rem; background: var(--surface-soft); border: 1px dashed var(--line);
+    border-radius: var(--radius); padding: 1.1rem 1.4rem; font-size: .9rem; color: var(--ink-soft);
+  }
+  .flow-note strong { color: var(--ink); }
+  code.cmd {
+    display: block; margin-top: 1.25rem; padding: 1rem 1.25rem; border-radius: .9rem;
+    background: var(--ink); color: oklch(0.95 0.02 85);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: .82rem;
+    overflow-x: auto; white-space: pre;
+  }
+  .faq details {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 1rem;
+    padding: 1rem 1.25rem; margin-bottom: .75rem;
+  }
+  .faq summary { font-weight: 700; cursor: pointer; font-size: .98rem; }
+  .faq summary::marker { color: var(--purple); }
+  .faq p { margin: .6rem 0 0; font-size: .93rem; color: var(--ink-soft); }
+  footer {
+    border-top: 1px solid var(--line); margin-top: 2rem;
+    padding: 2rem 0 3rem; color: var(--ink-soft); font-size: .88rem;
+  }
+  footer .wrap { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+  footer img { width: 56px; height: auto; }
+  footer a { color: var(--purple-deep); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <div class="wrap">
+    <a class="brand" href="/">Frame<span>wise</span></a>
+    <div class="links">
+      <a class="link" href="#idea">The idea</a>
+      <a class="link" href="#walkthrough">Walkthrough</a>
+      <a class="link" href="#run">Run it</a>
+      <a class="link" href="#tips">Tips</a>
+      <a class="cta" href="/">Back to app ↗</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <img class="mascot" src="/mascot.png" alt="The Framewise mascot — a cheerful purple zigzag inspired by the FFmpeg logo" />
+    <div>
+      <span class="kicker">User guide</span>
+      <h1 class="display">How to use <em>Framewise</em></h1>
+      <p class="lede">FFmpeg can do almost anything with video and audio — but its thousand-plus options are a lot to face alone. Framewise turns the common jobs into a friendly, step-by-step guide: you say what you want in plain words, review the exact command it builds, then run it in your browser or copy it for your desktop.</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="block" id="idea">
+    <h2 class="section-title">The idea in 30 seconds</h2>
+    <p class="section-sub">Every job in Framewise follows the same three beats. Nothing is hidden, and nothing runs before you've seen exactly what it will do.</p>
+    <div class="cards three">
+      <div class="card tint-purple">
+        <h3>1 · Say it in plain words</h3>
+        <p>Type something like <em>"video convert gif"</em> or <em>"shrink this for email"</em>. The guide matches your words to a workflow locally in your browser — no AI service, no account, no API key.</p>
+      </div>
+      <div class="card tint-blue">
+        <h3>2 · Review the command</h3>
+        <p>Each workflow builds a real FFmpeg command, shown live as you adjust options. A plain-language panel explains what every part does, and you can copy the command any time.</p>
+      </div>
+      <div class="card tint-mint">
+        <h3>3 · Run it your way</h3>
+        <p>Run the conversion right in the browser with the built-in engine, or copy the command and run it in desktop FFmpeg. Your files never leave your device either way.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="walkthrough">
+    <h2 class="section-title">The walkthrough, step by step</h2>
+    <p class="section-sub">Each workflow shows only the steps it needs. Here is what each one asks, and why.</p>
+    <div class="steps">
+      <div class="card step">
+        <h3><span class="step-num">1</span> Goal</h3>
+        <p>Tell Framewise what you're after in plain words. It matches keywords locally in your browser — no AI service is contacted.</p>
+      </div>
+      <div class="card step">
+        <h3><span class="step-num">2</span> Files</h3>
+        <p>Add files or a whole folder. With batch on, every file gets the same settings and its own output name.</p>
+      </div>
+      <div class="card step">
+        <h3><span class="step-num">3</span> Format</h3>
+        <p>MP4 is the safe bet for sharing. WebM is smaller for the web; MOV suits Apple editing apps.</p>
+      </div>
+      <div class="card step">
+        <h3><span class="step-num">4</span> Quality</h3>
+        <p>"Balanced" is invisible to most eyes. Go "Smaller" for messaging apps and email.</p>
+      </div>
+      <div class="card step">
+        <h3><span class="step-num">5</span> Resize</h3>
+        <p>Vertical and square crop from the centre. Plain resolutions keep the original shape.</p>
+      </div>
+      <div class="card step">
+        <h3><span class="step-num">6</span> Trim</h3>
+        <p>Keep the opening, the ending, or a time range. Friendly validation keeps time formats on track.</p>
+      </div>
+      <div class="card step">
+        <h3><span class="step-num">7</span> Audio</h3>
+        <p>Evening out volume helps with quiet recordings. Removing audio makes a silent clip.</p>
+      </div>
+      <div class="card step">
+        <h3><span class="step-num">8</span> Subtitles</h3>
+        <p>A switchable track is quick and keeps the picture clean. Burn-in is permanent.</p>
+      </div>
+      <div class="card step">
+        <h3><span class="step-num">9</span> Output</h3>
+        <p>New files never replace your originals. Choose a folder in Chrome/Edge, or download.</p>
+      </div>
+      <div class="card step">
+        <h3><span class="step-num">10</span> Review</h3>
+        <p>Copy the command for desktop FFmpeg, or run it here. Real runs are saved to History.</p>
+      </div>
+    </div>
+    <div class="flow-note"><strong>Not every workflow uses every step.</strong> Making a GIF, for example, skips format and quality and goes straight to trimming and sizing. Skip any step you don't need — sensible defaults carry on without you.</div>
+  </section>
+
+  <section class="block" id="run">
+    <h2 class="section-title">Run it your way</h2>
+    <p class="section-sub">When the command looks right, you have two honest options. Both keep your media on your device.</p>
+    <div class="cards two">
+      <div class="card tint-purple">
+        <h3>Run in browser</h3>
+        <p>Framewise downloads the FFmpeg engine (about 31&nbsp;MB, once) and converts your files inside the tab, showing live progress and the engine log. In Chrome and Edge on desktop you can save straight into a folder; other browsers download each finished file.</p>
+      </div>
+      <div class="card tint-amber">
+        <h3>Copy for desktop FFmpeg</h3>
+        <p>Prefer the terminal, or working with long or 4K video? Copy the exact command and run it in desktop FFmpeg — the browser engine is single-threaded, so big jobs go faster natively.</p>
+      </div>
+    </div>
+    <code class="cmd">ffmpeg -i input.mp4 -vf "fps=10,scale=480:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" output.gif</code>
+    <div class="flow-note"><strong>Your runs are remembered.</strong> Finished conversions are saved to History with their settings, so you can repeat a job later — just add the files again, since browsers don't let sites keep access to them.</div>
+  </section>
+
+  <section class="block" id="tips">
+    <h2 class="section-title">Good to know</h2>
+    <div class="cards two">
+      <div class="card">
+        <h3>Trim first, wait less</h3>
+        <p>Trimming first makes everything after it faster, since less video is processed. For GIFs especially, cut the clip down before anything else.</p>
+      </div>
+      <div class="card">
+        <h3>Your originals are safe</h3>
+        <p>New files never replace your originals. Outputs get their own names, so experimenting is free.</p>
+      </div>
+      <div class="card">
+        <h3>Batch the boring jobs</h3>
+        <p>Drop in a whole folder and every file gets the same settings with its own output name — one setup, many files.</p>
+      </div>
+      <div class="card">
+        <h3>Nothing uploads, ever</h3>
+        <p>Files are read and converted inside the browser tab using FFmpeg compiled to WebAssembly. Only the engine itself is downloaded, from a public CDN, on first use.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block faq" id="faq">
+    <h2 class="section-title">Quick answers</h2>
+    <p class="section-sub">The short version of the most common questions.</p>
+    <details>
+      <summary>Do I need to install anything?</summary>
+      <p>Just a current desktop browser. An internet connection is needed once, to download the FFmpeg engine; after that, conversions run locally. Desktop FFmpeg is optional — only if you want to run copied commands in a terminal.</p>
+    </details>
+    <details>
+      <summary>Can Framewise do every FFmpeg task?</summary>
+      <p>The guide covers the common jobs: compress, convert, trim, extract audio, resize, subtitles, and GIFs. FFmpeg itself can do far more — the Help page links the official references for the full toolkit.</p>
+    </details>
+    <details>
+      <summary>Is it slower than desktop FFmpeg?</summary>
+      <p>A little — the browser engine runs single-threaded. For long or 4K videos, copy the command and run it in desktop FFmpeg instead.</p>
+    </details>
+    <details>
+      <summary>Where do my files go?</summary>
+      <p>Nowhere. They stay on your device. In Chrome and Edge on desktop you can save results straight into a folder; other browsers download each finished file.</p>
+    </details>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <img src="/mascot.png" alt="" aria-hidden="true" />
+    <span>Framewise — FFmpeg, made friendly. <a href="https://github.com/ripscreates/framewise">Project repository on GitHub</a> · <a href="/help">Help &amp; how it works</a> · <a href="/v1-retrospective">V1 retrospective</a></span>
+  </div>
+</footer>
+
+</body>
+</html>
