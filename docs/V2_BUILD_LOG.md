@@ -60,3 +60,8 @@ This is the running, evidence-based record for the V2 retrospective. It tracks p
 - **Packaging environment:** the first restricted build could compile the app but could not create the DMG because `hdiutil` reported `Device not configured`. Rebuilding with the required packaging access succeeded.
 - **Public preview:** published GitHub prerelease [`v2.0.0-preview.1`](https://github.com/ripscreates/framewise/releases/tag/v2.0.0-preview.1), targeting source commit `6c1f6cf`. The uploaded DMG is `Framewise_2.0.0_aarch64.dmg`; SHA-256: `f4e5f762cd2d9974e298254dcb41133bef69bd33ee99b1d816b6bfe979266bcf`.
 - **Source status:** the V2 app and matching README update are proposed in PR #14; the default branch will show the download instructions after that PR is merged.
+
+## 2026-10-20 — User-reported preview install and launch
+
+- The user reports that the public DMG downloaded successfully, they followed the macOS instructions, and Framewise opened on their Mac.
+- The Mac model, chip, and macOS version were not reported. This confirms download and launch only; media conversion and engine behavior remain unverified.
