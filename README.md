@@ -24,6 +24,13 @@ Can also process bulk files from folder too!
 
 The public default branch currently documents and runs the V1 web app. V2 is being developed separately. Its release checklist includes native FFmpeg execution, a pinned and verified engine, engine compatibility checks, clean-machine conversion testing, and macOS distribution packaging.
 
+<p align="center">
+  <a href="https://youtu.be/l4mdegogg58">
+    <img src="https://img.youtube.com/vi/l4mdegogg58/hqdefault.jpg" alt="Watch the 21-second Framewise preview on YouTube" width="600" />
+  </a><br />
+  <em>21-second preview: Framewise — FFmpeg made easy for local media processing.</em>
+</p>
+
 **FFmpeg, made friendly.** Framewise is a web app that turns common media tasks into clear, reviewable FFmpeg steps. Choose what you want to do, adjust the options, then run the conversion in your browser or copy the command for desktop FFmpeg.
 
 <p><img src="docs/assets/framewise-create.png" alt="Framewise guided task setup" width="600" /></p>
@@ -131,6 +138,15 @@ From the project folder:
 <br><br>
 <p><img src="docs/assets/Framewise-history.png" alt="Framewise history screen, to re-run or save script" width="600" /></p>
 <br><br>
+
+## Video walkthrough
+
+<p align="center">
+  <a href="https://youtu.be/GJgC2bECqpE">
+    <img src="https://img.youtube.com/vi/GJgC2bECqpE/hqdefault.jpg" alt="Watch the Framewise web app walkthrough on YouTube" width="600" />
+  </a><br />
+  <em>Framewise web app walkthrough (1:52).</em>
+</p>
 
 
 ## Optional: build a production version
