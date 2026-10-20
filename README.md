@@ -6,12 +6,21 @@ Runs in your browser; your media stays on your device.
 Keeps track of previous history, to run again later.
 Can also process bulk files from folder too!
 
-- Just need Node.js (includes npm), FFmpeg and a current desktop browser. 
-- An internet connection is needed to download the FFmpeg engine on first conversion.
-- Desktop FFmpeg is optional for running copied commands in terminal console.
+- To run the web app locally: Node.js (includes npm) and a current desktop browser. Desktop FFmpeg is optional.
+- An internet connection is needed to install the app and download its browser FFmpeg engine on first conversion.
+- Install desktop FFmpeg only if you want to run copied commands in a terminal.
 
 
 
+
+## Choose an edition
+
+| Edition | Status | What it offers |
+| --- | --- | --- |
+| **Web app (V1)** | Available to try | Runs locally in a desktop browser on macOS, Windows, and Linux. Browser conversions use FFmpeg WebAssembly; desktop FFmpeg is optional unless you want to run copied commands. |
+| **macOS app (V2)** | In development | Apple Silicon is the first planned beta target. There is no supported public Mac download yet. The current prototype has not completed native desktop FFmpeg integration or bundled-engine setup, so it is not yet the all-in-one Mac experience. |
+
+The public default branch currently documents and runs the V1 web app. V2 is being developed separately. Its release checklist includes native FFmpeg execution, a pinned and verified engine, engine compatibility checks, clean-machine conversion testing, and macOS distribution packaging.
 
 **FFmpeg, made friendly.** Framewise is a web app that turns common media tasks into clear, reviewable FFmpeg steps. Choose what you want to do, adjust the options, then run the conversion in your browser or copy the command for desktop FFmpeg.
 
