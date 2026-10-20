@@ -1,5 +1,7 @@
 # Framewise
 
+<p><img src="public/mascot.png" alt="The Framewise mascot — a cheerful purple zigzag inspired by the FFmpeg logo" width="220" /></p>
+
 **TL;DR**
 FFmpeg GUI guide to help you get the command line to trim, resize or convert video, audio, & make gifs too!
 Runs in your browser; your media stays on your device. 
