@@ -6,11 +6,16 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+const desktopBuild = process.env.FRAMEWISE_DESKTOP === "true";
+
 export default defineConfig({
   tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
-    server: { entry: "server" },
+    ...(desktopBuild
+      ? { spa: { enabled: true, prerender: { outputPath: "/index.html" } } }
+      : {
+          // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
+          server: { entry: "server" },
+        }),
   },
   vite: {
     // @ffmpeg/ffmpeg spawns its own module worker; pre-bundling breaks the worker URL.
