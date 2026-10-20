@@ -19,7 +19,7 @@ Can also process bulk files from folder too!
 
 | Edition | Status | What it offers |
 | --- | --- | --- |
-| **Web app (V1)** | Available to try | Runs locally in a desktop browser on macOS, Windows, and Linux. Browser conversions use FFmpeg WebAssembly; desktop FFmpeg is optional unless you want to run copied commands. |
+| **Web app (V1)** | Available to try — [install instructions ↓](#web-app-install) | Runs locally in a desktop browser on macOS, Windows, and Linux. Browser conversions use FFmpeg WebAssembly; desktop FFmpeg is optional unless you want to run copied commands. |
 | **macOS app (V2)** | Developer preview | Apple Silicon; macOS 12 or newer. Uses FFmpeg WebAssembly downloaded from the internet; the native bundled engine is still in development. [Download Preview 1](https://github.com/ripscreates/framewise/releases/tag/v2.0.0-preview.1). |
 
 The Web V1 app remains available across macOS, Windows, and Linux. The V2 Mac app is an early desktop preview; it does not yet include the planned native FFmpeg engine, bundled engine choice, or compatibility checks.
@@ -63,6 +63,7 @@ Directly saving output to a chosen folder is supported in Chrome and Edge on des
 
 ## Install and run Framewise
 
+<a id="web-app-install"></a>
 ### Web app (V1 — available now)
 
 ### 1. Install Git and Node.js
