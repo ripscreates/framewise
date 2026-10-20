@@ -20,9 +20,9 @@ Can also process bulk files from folder too!
 | Edition | Status | What it offers |
 | --- | --- | --- |
 | **Web app (V1)** | Available to try | Runs locally in a desktop browser on macOS, Windows, and Linux. Browser conversions use FFmpeg WebAssembly; desktop FFmpeg is optional unless you want to run copied commands. |
-| **macOS app (V2)** | In development | Apple Silicon is the first planned beta target. There is no public Mac download yet. Native FFmpeg integration and the bundled engine are still in development. |
+| **macOS app (V2)** | Developer preview | Apple Silicon; macOS 12 or newer. Uses FFmpeg WebAssembly downloaded from the internet; the native bundled engine is still in development. [Download Preview 1](https://github.com/ripscreates/framewise/releases/tag/v2.0.0-preview.1). |
 
-The public default branch currently runs the V1 web app. V2 is under development. Its release checklist includes native FFmpeg execution, a pinned and verified engine, engine compatibility checks, clean-machine conversion testing, and macOS distribution packaging.
+The Web V1 app remains available across macOS, Windows, and Linux. The V2 Mac app is an early desktop preview; it does not yet include the planned native FFmpeg engine, bundled engine choice, or compatibility checks.
 
 **FFmpeg, made friendly.** Framewise is a web app that turns common media tasks into clear, reviewable FFmpeg steps. Choose what you want to do, adjust the options, then run the conversion in your browser or copy the command for desktop FFmpeg.
 
@@ -119,9 +119,16 @@ Leave that terminal window open. The terminal prints the local address for the a
 
 To stop the local app, return to the terminal and press **Ctrl+C**.
 
-### macOS app (V2 — in development)
+### macOS app (V2 — developer preview)
 
-There is no public DMG download or supported V2 installation guide yet. The current prototype still loads FFmpeg WebAssembly from the internet; native FFmpeg execution, engine compatibility checks, and native file/output handling are not ready. V2 is planned for Apple Silicon first. When a release is ready, its DMG and step-by-step installation instructions will be published here and on the GitHub Releases page.
+**Download:** [Framewise V2 Preview 1 for Apple Silicon (.dmg)](https://github.com/ripscreates/framewise/releases/tag/v2.0.0-preview.1). Requires an Apple Silicon Mac running macOS 12 or newer; Intel Macs are not supported.
+
+1. Open the downloaded DMG and drag **Framewise** to **Applications**.
+2. Eject the DMG, then try opening Framewise from Applications.
+3. This preview uses an ad-hoc signature and has not been notarized. If macOS blocks it, and you trust this download from the official Framewise GitHub release, open **System Settings → Privacy & Security → Open Anyway** and confirm.
+4. An internet connection is needed for the first conversion to download the FFmpeg WebAssembly engine from unpkg. The app does not include a native FFmpeg executable.
+
+This is a developer preview. Native FFmpeg execution, the bundled/system engine choice, compatibility checks, native file/output handling, and update checks remain in development. This package build has not been validated on a clean Mac or checked with an end-to-end media conversion.
 
 ## Screenshots
 
@@ -142,7 +149,7 @@ There is no public DMG download or supported V2 installation guide yet. The curr
 
 <p><img src="docs/assets/framewise-mac-v2.png" alt="Framewise macOS V2 opening screen showing the guided preset workflow." width="800" /></p>
 
-Early V2 desktop-window preview. The current prototype still processes media with FFmpeg WebAssembly; the native FFmpeg engine and downloadable Mac release are in development.
+Early V2 desktop-window preview. It processes media with FFmpeg WebAssembly; the native FFmpeg engine and all-in-one Mac release are still in development.
 
 ## Video walkthrough
 

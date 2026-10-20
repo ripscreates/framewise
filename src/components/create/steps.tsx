@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
@@ -61,16 +61,6 @@ import { Field, Note, OptionCard, StepHeading } from "./ui";
 
 type Upd = (fn: (s: Settings) => Settings) => void;
 
-const OP_ICONS: Record<Operation, ReactNode> = {
-  compress: <Minimize2 className="size-4" />,
-  convert: <Repeat2 className="size-4" />,
-  trim: <Scissors className="size-4" />,
-  "extract-audio": <Music className="size-4" />,
-  resize: <Smartphone className="size-4" />,
-  subtitles: <Captions className="size-4" />,
-  gif: <ImagePlay className="size-4" />,
-};
-
 const EXAMPLES = [
   "Make this video small enough to email",
   "Turn my MOV into an MP4",
@@ -78,6 +68,28 @@ const EXAMPLES = [
   "Vertical version for TikTok",
   "Get the audio as MP3",
 ];
+
+const PRESET_TITLES: Record<Operation, string> = {
+  compress: "Compress video",
+  convert: "Convert format",
+  trim: "Trim a clip",
+  "extract-audio": "Extract audio",
+  resize: "Resize for social",
+  subtitles: "Add subtitles",
+  gif: "Make a GIF",
+};
+
+function PresetArtwork({ operation }: { operation: Operation }) {
+  return (
+    <img
+      aria-hidden="true"
+      alt=""
+      src={`/v2/presets/${operation}.png`}
+      className="mx-auto block size-[76px] object-contain sm:size-[84px]"
+      draggable={false}
+    />
+  );
+}
 
 export function GoalStep({
   operation,
@@ -96,28 +108,101 @@ export function GoalStep({
   onAsk: (text: string) => void;
   onPick: (op: Operation) => void;
 }) {
+  const [otherOpen, setOtherOpen] = useState(false);
+  const queryRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (!hasChosen) setOtherOpen(false);
+  }, [hasChosen]);
+
+  useEffect(() => {
+    if (otherOpen) queryRef.current?.focus();
+  }, [otherOpen]);
+
   return (
-    <div>
-      <div className="relative overflow-hidden rounded-2xl border bg-card p-5 md:p-7">
-        <div className="pointer-events-none absolute inset-0 bg-gradient-glow" aria-hidden />
-        <div className="relative">
-          <div className="inline-flex items-center gap-1.5 rounded-full border bg-card/80 px-2.5 py-1 text-[11px] font-semibold text-primary">
-            <Wand2 className="size-3" /> Guide
+    <div className="mx-auto max-w-5xl">
+      {!otherOpen ? (
+        <>
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-semibold md:text-[30px]">What would you like to do?</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Choose a starting point.</p>
+            </div>
+            {hasChosen && (
+              <span className="text-xs text-muted-foreground">
+                Selected: {PRESET_TITLES[operation]}
+              </span>
+            )}
           </div>
-          <h2 className="mt-3 text-2xl font-semibold md:text-[32px] md:leading-tight">
-            What would you like to <span className="text-gradient-brand">make?</span>
-          </h2>
-          <p className="mt-2 max-w-lg text-sm text-muted-foreground">
-            Describe it in your own words, or pick a starting point below. I'll line up the FFmpeg steps that fit.
+          <div
+            className="grid grid-cols-2 gap-2.5 sm:grid-cols-4"
+            role="group"
+            aria-label="Choose a starting task"
+          >
+            {(Object.keys(OPERATIONS) as Operation[]).map((op) => (
+              <button
+                key={op}
+                type="button"
+                aria-pressed={hasChosen && operation === op}
+                aria-label={`${PRESET_TITLES[op]}. ${OPERATIONS[op].blurb}`}
+                onClick={() => onPick(op)}
+                className={cn(
+                  "group flex min-h-[132px] flex-col items-center justify-center rounded-2xl border bg-card px-2.5 py-3 text-center transition-colors",
+                  "hover:border-primary/50 hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  hasChosen &&
+                    operation === op &&
+                    "border-primary bg-secondary/50 ring-1 ring-primary/25",
+                )}
+              >
+                <PresetArtwork operation={op} />
+                <span className="mt-1 text-xs font-semibold leading-tight sm:text-sm">
+                  {PRESET_TITLES[op]}
+                </span>
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => setOtherOpen(true)}
+              className="group flex min-h-[132px] flex-col items-center justify-center rounded-2xl border border-dashed bg-card/70 px-3 py-3 text-center transition-colors hover:border-primary/50 hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              aria-label="Other: describe what you want to do"
+            >
+              <span className="grid size-[76px] place-items-center rounded-2xl bg-gradient-soft text-primary sm:size-[84px]">
+                <Wand2 className="size-8" strokeWidth={1.7} />
+              </span>
+              <span className="mt-1 text-xs font-semibold sm:text-sm">Other</span>
+            </button>
+          </div>
+          {hasChosen && (
+            <p className="mt-3 text-center text-xs text-muted-foreground">
+              Choose another task, or continue with the selected one.
+            </p>
+          )}
+        </>
+      ) : (
+        <div className="surface-card p-5 md:p-7">
+          <button
+            type="button"
+            onClick={() => setOtherOpen(false)}
+            className="mb-4 inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:underline"
+          >
+            <ArrowRight className="size-3.5 rotate-180" /> Back to presets
+          </button>
+          <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+            <Wand2 className="size-3.5" /> Other task
+          </div>
+          <h2 className="mt-2 text-xl font-semibold md:text-2xl">Tell me what you want to do</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            I’ll match it to a starting workflow on this device.
           </p>
           <form
-            className="mt-5 flex flex-col gap-2 sm:flex-row"
+            className="mt-4 flex flex-col gap-2 sm:flex-row"
             onSubmit={(e) => {
               e.preventDefault();
               onAsk(intent);
             }}
           >
             <Textarea
+              ref={queryRef}
               value={intent}
               onChange={(e) => setIntent(e.target.value)}
               onKeyDown={(e) => {
@@ -129,13 +214,19 @@ export function GoalStep({
               rows={2}
               placeholder="e.g. shrink my screen recording so it fits in an email"
               className="min-h-[52px] resize-none bg-card text-[15px]"
-              aria-label="Describe what you want to make"
+              aria-label="Describe what you want to do"
             />
-            <Button type="submit" variant="brand" size="lg" className="sm:h-auto" disabled={!intent.trim()}>
-              Guide me <ArrowRight className="size-4" />
+            <Button
+              type="submit"
+              variant="brand"
+              size="lg"
+              className="sm:h-auto"
+              disabled={!intent.trim()}
+            >
+              Find my steps <ArrowRight className="size-4" />
             </Button>
           </form>
-          <div className="mt-3 flex flex-wrap gap-1.5">
+          <div className="mt-2 flex flex-wrap gap-1.5" aria-label="Example requests">
             {EXAMPLES.map((ex) => (
               <button
                 key={ex}
@@ -144,46 +235,34 @@ export function GoalStep({
                   setIntent(ex);
                   onAsk(ex);
                 }}
-                className="rounded-full border bg-card/70 px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                className="rounded-full border bg-card/70 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                “{ex}”
+                {ex}
               </button>
             ))}
           </div>
-        </div>
-      </div>
-
-      {match && (
-        <div className="animate-rise mt-4 flex gap-3 rounded-2xl border border-primary/25 bg-secondary/50 p-4">
-          <div className="grid size-8 shrink-0 place-items-center rounded-lg bg-gradient-brand text-primary-foreground">
-            <Wand2 className="size-4" />
-          </div>
-          <div className="text-sm leading-relaxed">
-            <p>{match.reply}</p>
-            {!match.confident && (
-              <p className="mt-1 text-xs text-muted-foreground">
-                Choose a starting point below, or <Link to="/help" className="font-semibold text-primary hover:underline">see the FFmpeg references</Link>.
-              </p>
-            )}
-          </div>
+          {match && (
+            <div
+              className="animate-rise mt-4 flex gap-3 rounded-xl border border-primary/25 bg-secondary/50 p-4"
+              role="status"
+            >
+              <div className="grid size-8 shrink-0 place-items-center rounded-lg bg-gradient-brand text-primary-foreground">
+                <Wand2 className="size-4" />
+              </div>
+              <div className="text-sm leading-relaxed">
+                <p>{match.reply}</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Choose a preset below, or{" "}
+                  <Link to="/help" className="font-semibold text-primary hover:underline">
+                    see the FFmpeg guide
+                  </Link>
+                  .
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       )}
-
-      <div className="mt-6">
-        <div className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Or start from</div>
-        <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3" role="radiogroup" aria-label="Starting point">
-          {(Object.keys(OPERATIONS) as Operation[]).map((op) => (
-            <OptionCard
-              key={op}
-              selected={hasChosen && operation === op}
-              onClick={() => onPick(op)}
-              icon={OP_ICONS[op]}
-              title={OPERATIONS[op].label}
-              desc={OPERATIONS[op].blurb}
-            />
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
@@ -216,7 +295,13 @@ export function FilesStep({
     setQueue((q) => {
       const seen = new Set(q.map((x) => `${x.path}:${x.file.size}`));
       const fresh = media.filter((m) => !seen.has(`${m.path}:${m.file.size}`));
-      return [...q, ...toQueued(fresh.map((m) => m.file), fresh.map((m) => m.path))];
+      return [
+        ...q,
+        ...toQueued(
+          fresh.map((m) => m.file),
+          fresh.map((m) => m.path),
+        ),
+      ];
     });
   };
   const total = queue.reduce((n, q) => n + q.file.size, 0);
@@ -249,7 +334,9 @@ export function FilesStep({
           <Upload className="size-5" />
         </div>
         <p className="mt-3 text-sm font-semibold">Drag files or folders here</p>
-        <p className="mt-1 text-xs text-muted-foreground">Video and audio files — MP4, MOV, MKV, WebM, MP3, WAV and more</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Video and audio files — MP4, MOV, MKV, WebM, MP3, WAV and more
+        </p>
         <div className="mt-4 flex flex-wrap justify-center gap-2">
           <Button variant="outline" onClick={() => fileRef.current?.click()}>
             <FileVideo className="size-4" /> Choose files
@@ -276,7 +363,12 @@ export function FilesStep({
           className="hidden"
           {...({ webkitdirectory: "", directory: "" } as Record<string, string>)}
           onChange={(e) => {
-            add(Array.from(e.target.files || []).map((f) => ({ file: f, path: f.webkitRelativePath || f.name })));
+            add(
+              Array.from(e.target.files || []).map((f) => ({
+                file: f,
+                path: f.webkitRelativePath || f.name,
+              })),
+            );
             e.target.value = "";
           }}
         />
@@ -291,7 +383,8 @@ export function FilesStep({
         <div className="mt-5 rounded-2xl border bg-card">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
             <div className="text-sm font-semibold">
-              {queue.length} file{queue.length > 1 ? "s" : ""} <span className="font-normal text-muted-foreground">· {formatBytes(total)}</span>
+              {queue.length} file{queue.length > 1 ? "s" : ""}{" "}
+              <span className="font-normal text-muted-foreground">· {formatBytes(total)}</span>
             </div>
             <div className="flex items-center gap-4">
               {queue.length > 1 && (
@@ -311,11 +404,19 @@ export function FilesStep({
               return (
                 <li
                   key={q.id}
-                  className={cn("flex items-center gap-3 px-4 py-2.5", !batch && "cursor-pointer hover:bg-muted/50", active && "bg-secondary/60")}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-2.5",
+                    !batch && "cursor-pointer hover:bg-muted/50",
+                    active && "bg-secondary/60",
+                  )}
                   onClick={() => !batch && setActiveId(q.id)}
                 >
                   <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
-                    {q.file.type.startsWith("audio") ? <AudioLines className="size-4" /> : <Film className="size-4" />}
+                    {q.file.type.startsWith("audio") ? (
+                      <AudioLines className="size-4" />
+                    ) : (
+                      <Film className="size-4" />
+                    )}
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium">{q.path}</div>
@@ -324,7 +425,12 @@ export function FilesStep({
                     </div>
                   </div>
                   {!batch && (
-                    <span className={cn("text-[11px] font-semibold", active ? "text-primary" : "text-muted-foreground/60")}>
+                    <span
+                      className={cn(
+                        "text-[11px] font-semibold",
+                        active ? "text-primary" : "text-muted-foreground/60",
+                      )}
+                    >
                       {active ? "Selected" : "Use this"}
                     </span>
                   )}
@@ -344,14 +450,17 @@ export function FilesStep({
             })}
           </ul>
           {!batch && queue.length > 1 && (
-            <p className="border-t px-4 py-2 text-[11px] text-muted-foreground">Batch is off — only the selected file will be processed.</p>
+            <p className="border-t px-4 py-2 text-[11px] text-muted-foreground">
+              Batch is off — only the selected file will be processed.
+            </p>
           )}
         </div>
       )}
       {big && (
         <div className="mt-3">
           <Note tone="warn">
-            Files over ~1.5 GB may be too large for the in-browser engine's memory. The command will still work in desktop FFmpeg.
+            Files over ~1.5 GB may be too large for the in-browser engine's memory. The command will
+            still work in desktop FFmpeg.
           </Note>
         </div>
       )}
@@ -408,16 +517,27 @@ export function QualityStep({ s, upd }: { s: Settings; upd: Upd }) {
     { v: "balanced", t: "Balanced", d: "Good default" },
     { v: "thorough", t: "Thorough", d: "Slower, squeezes more" },
   ];
-  const names = { high: "Near-original", balanced: "Balanced", small: "Smaller file", tiny: "Smallest" };
+  const names = {
+    high: "Near-original",
+    balanced: "Balanced",
+    small: "Smaller file",
+    tiny: "Smallest",
+  };
   return (
     <div>
-      <StepHeading eyebrow="Step · Quality" title="How should quality and size trade off?" desc="FFmpeg uses a quality target (CRF) rather than a fixed size, so every file gets the bits it actually needs." />
+      <StepHeading
+        eyebrow="Step · Quality"
+        title="How should quality and size trade off?"
+        desc="FFmpeg uses a quality target (CRF) rather than a fixed size, so every file gets the bits it actually needs."
+      />
       <div className="grid gap-2.5 sm:grid-cols-2" role="radiogroup">
         {levels.map((l) => (
           <OptionCard
             key={l.v}
             selected={s.quality.level === l.v}
-            onClick={() => upd((x) => ({ ...x, quality: { ...x.quality, enabled: true, level: l.v } }))}
+            onClick={() =>
+              upd((x) => ({ ...x, quality: { ...x.quality, enabled: true, level: l.v } }))
+            }
             icon={<Gauge className="size-4" />}
             title={names[l.v]}
             desc={l.d}
@@ -430,14 +550,18 @@ export function QualityStep({ s, upd }: { s: Settings; upd: Upd }) {
           <OptionCard
             key={sp.v}
             selected={s.quality.speed === sp.v}
-            onClick={() => upd((x) => ({ ...x, quality: { ...x.quality, enabled: true, speed: sp.v } }))}
+            onClick={() =>
+              upd((x) => ({ ...x, quality: { ...x.quality, enabled: true, speed: sp.v } }))
+            }
             title={sp.t}
             desc={sp.d}
           />
         ))}
       </div>
       <div className="mt-4">
-        <Note>In-browser encoding is slower than desktop FFmpeg. “Quick” is a good pick for long videos.</Note>
+        <Note>
+          In-browser encoding is slower than desktop FFmpeg. “Quick” is a good pick for long videos.
+        </Note>
       </div>
     </div>
   );
@@ -447,35 +571,94 @@ export function ResizeStep({ s, upd }: { s: Settings; upd: Upd }) {
   if (s.operation === "gif") {
     return (
       <div>
-        <StepHeading eyebrow="Step · Size" title="Size and smoothness" desc="Smaller and fewer frames keep GIFs light enough to share." />
+        <StepHeading
+          eyebrow="Step · Size"
+          title="Size and smoothness"
+          desc="Smaller and fewer frames keep GIFs light enough to share."
+        />
         <div className="space-y-6 rounded-2xl border bg-card p-5">
           <Field label="Width" hint={`${s.gif.width}px`}>
-            <Slider min={160} max={1080} step={20} value={[s.gif.width]} onValueChange={([v]) => upd((x) => ({ ...x, resize: { ...x.resize, enabled: true }, gif: { ...x.gif, width: v } }))} />
+            <Slider
+              min={160}
+              max={1080}
+              step={20}
+              value={[s.gif.width]}
+              onValueChange={([v]) =>
+                upd((x) => ({
+                  ...x,
+                  resize: { ...x.resize, enabled: true },
+                  gif: { ...x.gif, width: v },
+                }))
+              }
+            />
           </Field>
           <Field label="Frames per second" hint={`${s.gif.fps} fps`}>
-            <Slider min={5} max={30} step={1} value={[s.gif.fps]} onValueChange={([v]) => upd((x) => ({ ...x, gif: { ...x.gif, fps: v } }))} />
+            <Slider
+              min={5}
+              max={30}
+              step={1}
+              value={[s.gif.fps]}
+              onValueChange={([v]) => upd((x) => ({ ...x, gif: { ...x.gif, fps: v } }))}
+            />
           </Field>
         </div>
       </div>
     );
   }
   const opts: { v: ResizePreset; t: string; d: string; icon: ReactNode; badge?: string }[] = [
-    { v: "vertical", t: "Vertical 9:16", d: "TikTok, Reels, Shorts, Stories · 1080×1920", icon: <RectangleVertical className="size-4" />, badge: "Social" },
-    { v: "square", t: "Square 1:1", d: "Instagram & LinkedIn feed · 1080×1080", icon: <Square className="size-4" /> },
-    { v: "1080p", t: "1080p", d: "Full HD, keeps the original shape", icon: <Maximize2 className="size-4" /> },
-    { v: "720p", t: "720p", d: "HD — a great size/quality balance", icon: <Maximize2 className="size-4" /> },
-    { v: "480p", t: "480p", d: "Small screens and quick previews", icon: <Minimize2 className="size-4" /> },
-    { v: "custom", t: "Custom size", d: "Set exact width and height", icon: <Wand2 className="size-4" /> },
+    {
+      v: "vertical",
+      t: "Vertical 9:16",
+      d: "TikTok, Reels, Shorts, Stories · 1080×1920",
+      icon: <RectangleVertical className="size-4" />,
+      badge: "Social",
+    },
+    {
+      v: "square",
+      t: "Square 1:1",
+      d: "Instagram & LinkedIn feed · 1080×1080",
+      icon: <Square className="size-4" />,
+    },
+    {
+      v: "1080p",
+      t: "1080p",
+      d: "Full HD, keeps the original shape",
+      icon: <Maximize2 className="size-4" />,
+    },
+    {
+      v: "720p",
+      t: "720p",
+      d: "HD — a great size/quality balance",
+      icon: <Maximize2 className="size-4" />,
+    },
+    {
+      v: "480p",
+      t: "480p",
+      d: "Small screens and quick previews",
+      icon: <Minimize2 className="size-4" />,
+    },
+    {
+      v: "custom",
+      t: "Custom size",
+      d: "Set exact width and height",
+      icon: <Wand2 className="size-4" />,
+    },
   ];
   return (
     <div>
-      <StepHeading eyebrow="Step · Size" title="Resize or reframe?" desc="Social formats crop from the centre so nothing gets squashed." />
+      <StepHeading
+        eyebrow="Step · Size"
+        title="Resize or reframe?"
+        desc="Social formats crop from the centre so nothing gets squashed."
+      />
       <div className="grid gap-2.5 sm:grid-cols-2" role="radiogroup">
         {opts.map((o) => (
           <OptionCard
             key={o.v}
             selected={s.resize.enabled && s.resize.preset === o.v}
-            onClick={() => upd((x) => ({ ...x, resize: { ...x.resize, enabled: true, preset: o.v } }))}
+            onClick={() =>
+              upd((x) => ({ ...x, resize: { ...x.resize, enabled: true, preset: o.v } }))
+            }
             icon={o.icon}
             title={o.t}
             desc={o.d}
@@ -486,10 +669,26 @@ export function ResizeStep({ s, upd }: { s: Settings; upd: Upd }) {
       {s.resize.enabled && s.resize.preset === "custom" && (
         <div className="mt-4 grid max-w-sm grid-cols-2 gap-3">
           <Field label="Width (px)">
-            <Input type="number" min={16} max={7680} value={s.resize.width} onChange={(e) => upd((x) => ({ ...x, resize: { ...x.resize, width: Number(e.target.value) || 0 } }))} />
+            <Input
+              type="number"
+              min={16}
+              max={7680}
+              value={s.resize.width}
+              onChange={(e) =>
+                upd((x) => ({ ...x, resize: { ...x.resize, width: Number(e.target.value) || 0 } }))
+              }
+            />
           </Field>
           <Field label="Height (px)">
-            <Input type="number" min={16} max={4320} value={s.resize.height} onChange={(e) => upd((x) => ({ ...x, resize: { ...x.resize, height: Number(e.target.value) || 0 } }))} />
+            <Input
+              type="number"
+              min={16}
+              max={4320}
+              value={s.resize.height}
+              onChange={(e) =>
+                upd((x) => ({ ...x, resize: { ...x.resize, height: Number(e.target.value) || 0 } }))
+              }
+            />
           </Field>
         </div>
       )}
@@ -502,13 +701,19 @@ export function TrimStep({ s, upd }: { s: Settings; upd: Upd }) {
   const endOk = !s.trim.end || isValidTime(s.trim.end);
   return (
     <div>
-      <StepHeading eyebrow="Step · Trim" title="Keep only part of it?" desc="Use hours:minutes:seconds, or just seconds. Leave the end empty to go to the finish." />
+      <StepHeading
+        eyebrow="Step · Trim"
+        title="Keep only part of it?"
+        desc="Use hours:minutes:seconds, or just seconds. Leave the end empty to go to the finish."
+      />
       <div className="grid max-w-md grid-cols-2 gap-3 rounded-2xl border bg-card p-5">
         <Field label="Start">
           <Input
             value={s.trim.start}
             aria-invalid={!startOk}
-            onChange={(e) => upd((x) => ({ ...x, trim: { ...x.trim, enabled: true, start: e.target.value } }))}
+            onChange={(e) =>
+              upd((x) => ({ ...x, trim: { ...x.trim, enabled: true, start: e.target.value } }))
+            }
             placeholder="00:00:00"
             className="font-mono"
           />
@@ -517,12 +722,18 @@ export function TrimStep({ s, upd }: { s: Settings; upd: Upd }) {
           <Input
             value={s.trim.end}
             aria-invalid={!endOk}
-            onChange={(e) => upd((x) => ({ ...x, trim: { ...x.trim, enabled: true, end: e.target.value } }))}
+            onChange={(e) =>
+              upd((x) => ({ ...x, trim: { ...x.trim, enabled: true, end: e.target.value } }))
+            }
             placeholder="end of file"
             className="font-mono"
           />
         </Field>
-        {(!startOk || !endOk) && <p className="col-span-2 text-xs text-destructive">Times look like 00:01:30, 1:30 or 90.</p>}
+        {(!startOk || !endOk) && (
+          <p className="col-span-2 text-xs text-destructive">
+            Times look like 00:01:30, 1:30 or 90.
+          </p>
+        )}
       </div>
       <div className="mt-3 flex flex-wrap gap-1.5">
         {[
@@ -550,12 +761,34 @@ export function AudioStep({ s, upd }: { s: Settings; upd: Upd }) {
   const fmt = effectiveFormat(s);
   return (
     <div>
-      <StepHeading eyebrow="Step · Audio" title="What about the sound?" desc="Keep it as is, even out the volume, or remove it entirely." />
+      <StepHeading
+        eyebrow="Step · Audio"
+        title="What about the sound?"
+        desc="Keep it as is, even out the volume, or remove it entirely."
+      />
       <div className="grid gap-2.5 sm:grid-cols-3" role="radiogroup">
-        <OptionCard selected={s.audio.mode === "keep"} onClick={() => upd((x) => ({ ...x, audio: { ...x.audio, mode: "keep" } }))} icon={<Volume2 className="size-4" />} title="Keep audio" desc="Re-encode at a sensible bitrate" />
-        <OptionCard selected={s.audio.mode === "normalize"} onClick={() => upd((x) => ({ ...x, audio: { ...x.audio, mode: "normalize" } }))} icon={<AudioLines className="size-4" />} title="Even out volume" desc="Loudness normalisation" />
+        <OptionCard
+          selected={s.audio.mode === "keep"}
+          onClick={() => upd((x) => ({ ...x, audio: { ...x.audio, mode: "keep" } }))}
+          icon={<Volume2 className="size-4" />}
+          title="Keep audio"
+          desc="Re-encode at a sensible bitrate"
+        />
+        <OptionCard
+          selected={s.audio.mode === "normalize"}
+          onClick={() => upd((x) => ({ ...x, audio: { ...x.audio, mode: "normalize" } }))}
+          icon={<AudioLines className="size-4" />}
+          title="Even out volume"
+          desc="Loudness normalisation"
+        />
         {!audioOnly && (
-          <OptionCard selected={s.audio.mode === "remove"} onClick={() => upd((x) => ({ ...x, audio: { ...x.audio, mode: "remove" } }))} icon={<VolumeX className="size-4" />} title="Remove audio" desc="Silent output" />
+          <OptionCard
+            selected={s.audio.mode === "remove"}
+            onClick={() => upd((x) => ({ ...x, audio: { ...x.audio, mode: "remove" } }))}
+            icon={<VolumeX className="size-4" />}
+            title="Remove audio"
+            desc="Silent output"
+          />
         )}
       </div>
       {s.audio.mode !== "remove" && fmt !== "wav" && (
@@ -585,19 +818,39 @@ export function AudioStep({ s, upd }: { s: Settings; upd: Upd }) {
   );
 }
 
-export function SubtitlesStep({ s, upd, sub, setSub }: { s: Settings; upd: Upd; sub: File | null; setSub: (f: File | null) => void }) {
+export function SubtitlesStep({
+  s,
+  upd,
+  sub,
+  setSub,
+}: {
+  s: Settings;
+  upd: Upd;
+  sub: File | null;
+  setSub: (f: File | null) => void;
+}) {
   const ref = useRef<HTMLInputElement>(null);
   return (
     <div>
-      <StepHeading eyebrow="Step · Subtitles" title="Add a subtitle file" desc="Pick an .srt, .vtt or .ass file. It'll be applied to every video in the batch." />
+      <StepHeading
+        eyebrow="Step · Subtitles"
+        title="Add a subtitle file"
+        desc="Pick an .srt, .vtt or .ass file. It'll be applied to every video in the batch."
+      />
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border bg-card p-4">
         <Button variant="outline" onClick={() => ref.current?.click()}>
           <Captions className="size-4" /> {sub ? "Replace file" : "Choose subtitle file"}
         </Button>
         {sub ? (
           <span className="flex items-center gap-2 text-sm">
-            {sub.name} <span className="text-xs text-muted-foreground">{formatBytes(sub.size)}</span>
-            <button type="button" aria-label="Remove subtitle file" onClick={() => setSub(null)} className="text-muted-foreground hover:text-destructive">
+            {sub.name}{" "}
+            <span className="text-xs text-muted-foreground">{formatBytes(sub.size)}</span>
+            <button
+              type="button"
+              aria-label="Remove subtitle file"
+              onClick={() => setSub(null)}
+              className="text-muted-foreground hover:text-destructive"
+            >
               <X className="size-3.5" />
             </button>
           </span>
@@ -618,12 +871,30 @@ export function SubtitlesStep({ s, upd, sub, setSub }: { s: Settings; upd: Upd; 
         />
       </div>
       <div className="mt-4 grid gap-2.5 sm:grid-cols-2" role="radiogroup">
-        <OptionCard selected={s.subtitles.mode === "soft"} onClick={() => upd((x) => ({ ...x, subtitles: { ...x.subtitles, enabled: true, mode: "soft" } }))} title="Switchable track" desc="Viewers can turn captions on/off. Fast — no re-drawing." badge="Recommended" />
-        <OptionCard selected={s.subtitles.mode === "burn"} onClick={() => upd((x) => ({ ...x, subtitles: { ...x.subtitles, enabled: true, mode: "burn" } }))} title="Burn into picture" desc="Always visible, works on every platform." />
+        <OptionCard
+          selected={s.subtitles.mode === "soft"}
+          onClick={() =>
+            upd((x) => ({ ...x, subtitles: { ...x.subtitles, enabled: true, mode: "soft" } }))
+          }
+          title="Switchable track"
+          desc="Viewers can turn captions on/off. Fast — no re-drawing."
+          badge="Recommended"
+        />
+        <OptionCard
+          selected={s.subtitles.mode === "burn"}
+          onClick={() =>
+            upd((x) => ({ ...x, subtitles: { ...x.subtitles, enabled: true, mode: "burn" } }))
+          }
+          title="Burn into picture"
+          desc="Always visible, works on every platform."
+        />
       </div>
       {s.subtitles.mode === "burn" && (
         <div className="mt-3">
-          <Note tone="warn">Burning in needs fonts. The in-browser engine ships without system fonts, so this may fail here — the command works in desktop FFmpeg.</Note>
+          <Note tone="warn">
+            Burning in needs fonts. The in-browser engine ships without system fonts, so this may
+            fail here — the command works in desktop FFmpeg.
+          </Note>
         </div>
       )}
     </div>
@@ -648,11 +919,19 @@ export function OutputStep({
   const preview = names.length ? outputNames(names, s) : outputNames(["my-video.mp4"], s);
   return (
     <div>
-      <StepHeading eyebrow="Step · Output" title="Name it and choose where it goes" desc="Originals are never touched — Framewise always writes new files." />
+      <StepHeading
+        eyebrow="Step · Output"
+        title="Name it and choose where it goes"
+        desc="Originals are never touched — Framewise always writes new files."
+      />
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="rounded-2xl border bg-card p-5">
           <Field label="Add to the end of each name" hint="optional">
-            <Input value={s.output.suffix} onChange={(e) => upd((x) => ({ ...x, output: { suffix: e.target.value } }))} placeholder="-compressed" />
+            <Input
+              value={s.output.suffix}
+              onChange={(e) => upd((x) => ({ ...x, output: { suffix: e.target.value } }))}
+              placeholder="-compressed"
+            />
           </Field>
           <div className="mt-4 text-xs font-semibold">Preview</div>
           <ul className="mt-1.5 max-h-40 space-y-1 overflow-auto font-mono text-xs">
@@ -661,9 +940,13 @@ export function OutputStep({
                 {n}
               </li>
             ))}
-            {preview.length > 8 && <li className="text-muted-foreground">+ {preview.length - 8} more</li>}
+            {preview.length > 8 && (
+              <li className="text-muted-foreground">+ {preview.length - 8} more</li>
+            )}
           </ul>
-          <p className="mt-2 text-[11px] text-muted-foreground">Duplicate names get -2, -3… so nothing is overwritten within a batch.</p>
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            Duplicate names get -2, -3… so nothing is overwritten within a batch.
+          </p>
         </div>
 
         <div
@@ -679,7 +962,10 @@ export function OutputStep({
             const h = await dirFromDrop(e.dataTransfer).catch(() => null);
             if (h) setDir(h);
           }}
-          className={cn("flex flex-col rounded-2xl border bg-card p-5 transition-all", over && "border-primary bg-secondary/60")}
+          className={cn(
+            "flex flex-col rounded-2xl border bg-card p-5 transition-all",
+            over && "border-primary bg-secondary/60",
+          )}
         >
           <div className="text-xs font-semibold">Destination</div>
           {supported ? (
@@ -690,18 +976,26 @@ export function OutputStep({
                   {dir ? (
                     <>
                       <div className="truncate font-semibold">{dir.name}</div>
-                      <div className="text-[11px] text-muted-foreground">Finished files are saved straight here</div>
+                      <div className="text-[11px] text-muted-foreground">
+                        Finished files are saved straight here
+                      </div>
                     </>
                   ) : (
                     <>
                       <div className="font-semibold">Downloads</div>
-                      <div className="text-[11px] text-muted-foreground">Or drop a folder here / choose one</div>
+                      <div className="text-[11px] text-muted-foreground">
+                        Or drop a folder here / choose one
+                      </div>
                     </>
                   )}
                 </div>
               </div>
               <div className="mt-3 flex gap-2">
-                <Button variant="outline" size="sm" onClick={async () => setDir(await pickDirectory())}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => setDir(await pickDirectory())}
+                >
                   <FolderOpen className="size-3.5" /> {dir ? "Change folder" : "Choose folder"}
                 </Button>
                 {dir && (
@@ -717,10 +1011,15 @@ export function OutputStep({
                 <Download className="size-5 text-primary" />
                 <div className="text-sm">
                   <div className="font-semibold">Downloads</div>
-                  <div className="text-[11px] text-muted-foreground">Each finished file gets a download button</div>
+                  <div className="text-[11px] text-muted-foreground">
+                    Each finished file gets a download button
+                  </div>
                 </div>
               </div>
-              <Note>This browser can't write directly into folders. Chrome or Edge on desktop can — everywhere else, files download instead.</Note>
+              <Note>
+                This browser can't write directly into folders. Chrome or Edge on desktop can —
+                everywhere else, files download instead.
+              </Note>
             </div>
           )}
         </div>

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Framewise",
+  "version": "2.0.0",
+  "identifier": "com.ripscreates.framewise",
+  "build": {
+    "beforeDevCommand": "npm run dev:mac:frontend",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build:mac:frontend",
+    "frontendDist": "../.output/public"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Framewise",
+        "width": 1180,
+        "height": 820,
+        "minWidth": 880,
+        "minHeight": 640,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self' asset: http://asset.localhost; img-src 'self' asset: http://asset.localhost data: blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; connect-src 'self' ipc: http://ipc.localhost https://unpkg.com"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg"],
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns"],
+    "category": "Utility",
+    "shortDescription": "A guided workspace for FFmpeg tasks",
+    "longDescription": "Framewise guides you through common video and audio workflows, then builds a clear FFmpeg command.",
+    "macOS": { "minimumSystemVersion": "12.0", "signingIdentity": "-" }
+  }
+}

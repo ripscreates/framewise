@@ -6,6 +6,11 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
+    "dev:mac:frontend": "FRAMEWISE_DESKTOP=true vite dev --host 127.0.0.1 --port 1420 --strictPort",
+    "build:mac:frontend": "FRAMEWISE_DESKTOP=true vite build",
+    "dev:mac": "tauri dev",
+    "build:mac": "tauri build",
+    "tauri": "tauri",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
@@ -15,6 +20,7 @@
     "rolldown": "1.2.1"
   },
   "dependencies": {
+    "@tauri-apps/api": "^2.0.0",
     "@ffmpeg/ffmpeg": "0.12.15",
     "@ffmpeg/util": "0.12.2",
     "@radix-ui/react-progress": "^1.1.8",
@@ -33,6 +39,7 @@
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0",
     "@eslint/js": "^9.32.0",
     "@lovable.dev/vite-tanstack-config": "2.25.3",
     "@tailwindcss/vite": "^4.2.1",

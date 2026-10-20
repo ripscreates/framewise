@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { isTauri } from "@tauri-apps/api/core";
 
 /**
  * Lazy, browser-only FFmpeg WebAssembly engine (single-thread core).
@@ -54,7 +55,10 @@ export async function loadEngine() {
         wasmURL: await toBlobURL(`${CORE}/ffmpeg-core.wasm`, "application/wasm"),
       });
       instance = ff;
-      set({ status: "ready", message: "Runs locally in this tab" });
+      set({
+        status: "ready",
+        message: isTauri() ? "Runs locally in this app · WebAssembly" : "Runs locally in this tab",
+      });
       return ff;
     })().catch((e: unknown) => {
       loading = null;
