@@ -20,16 +20,9 @@ Can also process bulk files from folder too!
 | Edition | Status | What it offers |
 | --- | --- | --- |
 | **Web app (V1)** | Available to try | Runs locally in a desktop browser on macOS, Windows, and Linux. Browser conversions use FFmpeg WebAssembly; desktop FFmpeg is optional unless you want to run copied commands. |
-| **macOS app (V2)** | In development | Apple Silicon is the first planned beta target. There is no supported public Mac download yet. The current prototype has not completed native desktop FFmpeg integration or bundled-engine setup, so it is not yet the all-in-one Mac experience. |
+| **macOS app (V2)** | In development | Apple Silicon is the first planned beta target. There is no public Mac download yet. Native FFmpeg integration and the bundled engine are still in development. |
 
-The public default branch currently documents and runs the V1 web app. V2 is being developed separately. Its release checklist includes native FFmpeg execution, a pinned and verified engine, engine compatibility checks, clean-machine conversion testing, and macOS distribution packaging.
-
-<p align="center">
-  <a href="https://youtu.be/l4mdegogg58">
-    <img src="https://img.youtube.com/vi/l4mdegogg58/hqdefault.jpg" alt="Watch the 21-second Framewise preview on YouTube" width="600" />
-  </a><br />
-  <em>21-second preview: Framewise — FFmpeg made easy for local media processing.</em>
-</p>
+The public default branch currently runs the V1 web app. V2 is under development. Its release checklist includes native FFmpeg execution, a pinned and verified engine, engine compatibility checks, clean-machine conversion testing, and macOS distribution packaging.
 
 **FFmpeg, made friendly.** Framewise is a web app that turns common media tasks into clear, reviewable FFmpeg steps. Choose what you want to do, adjust the options, then run the conversion in your browser or copy the command for desktop FFmpeg.
 
@@ -69,6 +62,8 @@ Copied desktop commands and downloaded command scripts use POSIX shell syntax. O
 Directly saving output to a chosen folder is supported in Chrome and Edge on desktop. Other browsers can download each finished file individually.
 
 ## Install and run Framewise
+
+### Web app (V1 — available now)
 
 ### 1. Install Git and Node.js
 
@@ -124,9 +119,13 @@ Leave that terminal window open. The terminal prints the local address for the a
 
 To stop the local app, return to the terminal and press **Ctrl+C**.
 
+### macOS app (V2 — in development)
+
+There is no public DMG download or supported V2 installation guide yet. The current prototype still loads FFmpeg WebAssembly from the internet; native FFmpeg execution, engine compatibility checks, and native file/output handling are not ready. V2 is planned for Apple Silicon first. When a release is ready, its DMG and step-by-step installation instructions will be published here and on the GitHub Releases page.
+
 ## Screenshots
 
-From the project folder:
+### Web app (V1)
 
 <p><img src="docs/assets/framewise-create.png" alt="Framewise starting screen of guided task setup." width="600" /></p>
 <br><br>
@@ -138,6 +137,12 @@ From the project folder:
 <br><br>
 <p><img src="docs/assets/Framewise-history.png" alt="Framewise history screen, to re-run or save script" width="600" /></p>
 <br><br>
+
+### macOS app (V2 development preview)
+
+<p><img src="docs/assets/framewise-mac-v2.png" alt="Framewise macOS V2 opening screen showing the guided preset workflow." width="800" /></p>
+
+Early V2 desktop-window preview. The current prototype still processes media with FFmpeg WebAssembly; the native FFmpeg engine and downloadable Mac release are in development.
 
 ## Video walkthrough
 
