@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, RotateCcw, SkipForward, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TopBar } from "@/components/AppShell";
@@ -30,10 +30,11 @@ import {
 } from "@/components/create/steps";
 import { CommandBlock, ReviewStep, useCommands } from "@/components/create/ReviewStep";
 import { Note } from "@/components/create/ui";
+import { activeNativeEngine, useIsDesktopApp, useNativeEngines } from "@/lib/native-engine";
 
 export const Route = createFileRoute("/")({
   validateSearch: (s: Record<string, unknown>): { repeat?: string } =>
-    typeof s.repeat === "string" ? { repeat: s.repeat } : {},
+    typeof s["repeat"] === "string" ? { repeat: s["repeat"] } : {},
   head: () => ({
     meta: [
       { title: "Create — Framewise" },
@@ -99,12 +100,20 @@ function Create() {
   const steps = OPERATIONS[settings.operation].steps;
   const idx = steps.indexOf(step);
   const upd = (fn: (s: Settings) => Settings) => setSettings(fn);
-  const setQueue = (fn: (q: QueuedFile[]) => QueuedFile[]) => setQueueState(fn);
+  const setQueue = useCallback((fn: (q: QueuedFile[]) => QueuedFile[]) => setQueueState(fn), []);
   const files = useMemo(
     () => (batch ? queue : queue.filter((q) => q.id === (activeId ?? queue[0]?.id))),
     [queue, batch, activeId],
   );
-  const cmds = useCommands(settings, files, sub);
+  const desktop = useIsDesktopApp();
+  const nativeState = useNativeEngines();
+  const nativeEngine = activeNativeEngine(nativeState.catalog);
+  const nativeVideoEncoder = nativeEngine?.encoders.includes("h264_videotoolbox")
+    ? "h264_videotoolbox"
+    : nativeEngine?.encoders.includes("libx264")
+      ? "libx264"
+      : undefined;
+  const cmds = useCommands(settings, files, sub, desktop ? nativeVideoEncoder : undefined);
 
   const pick = (op: Operation, preset?: Settings) => {
     setSettings((prev) => ({
@@ -128,7 +137,8 @@ function Create() {
     if (step === "resize") upd((s) => ({ ...s, resize: { ...s.resize, enabled: true } }));
     if (step === "trim") upd((s) => ({ ...s, trim: { ...s.trim, enabled: true } }));
     if (step === "subtitles") upd((s) => ({ ...s, subtitles: { ...s.subtitles, enabled: true } }));
-    if (idx < steps.length - 1) go(steps[idx + 1]);
+    const nextStep = steps[idx + 1];
+    if (nextStep) go(nextStep);
   };
   const skip = () => {
     setSkipped((sk) => new Set(sk).add(step));
@@ -158,7 +168,8 @@ function Create() {
           return s;
       }
     });
-    if (idx < steps.length - 1) go(steps[idx + 1]);
+    const nextStep = steps[idx + 1];
+    if (nextStep) go(nextStep);
   };
   const reset = () => {
     setSettings(defaultSettings("compress"));
@@ -174,20 +185,23 @@ function Create() {
   };
 
   const upcoming = steps[idx + 1];
+  const previous = idx > 0 ? steps[idx - 1] : undefined;
   const canContinue = step !== "goal" || chosen;
 
   return (
     <div>
       <TopBar
         title="Create"
-        subtitle={chosen ? summarize(settings) : undefined}
-        actions={
-          chosen ? (
-            <Button variant="ghost" size="sm" onClick={reset}>
-              <RotateCcw className="size-3.5" /> Start over
-            </Button>
-          ) : undefined
-        }
+        {...(chosen ? { subtitle: summarize(settings) } : {})}
+        {...(chosen
+          ? {
+              actions: (
+                <Button variant="ghost" size="sm" onClick={reset}>
+                  <RotateCcw className="size-3.5" /> Start over
+                </Button>
+              ),
+            }
+          : {})}
       />
       {(chosen || step !== "goal") && (
         <div className="border-b px-5 py-3 md:px-8">
@@ -305,8 +319,8 @@ function Create() {
 
           {step !== "review" && (step !== "goal" || chosen) && (
             <div className="mt-8 flex flex-wrap items-center gap-2 border-t pt-5">
-              {idx > 0 && (
-                <Button variant="ghost" onClick={() => go(steps[idx - 1])}>
+              {previous && (
+                <Button variant="ghost" onClick={() => go(previous)}>
                   <ArrowLeft className="size-4" /> Back
                 </Button>
               )}
@@ -344,7 +358,7 @@ function Create() {
                 </button>
               )}
             </div>
-            {chosen && step !== "review" && (
+            {chosen && step !== "review" && cmds[0] && (
               <div className="surface-card p-5">
                 <div className="mb-2 flex items-center justify-between text-xs font-semibold">
                   Live command

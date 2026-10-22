@@ -8,6 +8,25 @@ export interface QueuedFile {
   id: string;
   file: File;
   path: string;
+  nativePath?: string;
+  size?: number;
+}
+
+export function queuedSize(file: QueuedFile) {
+  return file.size ?? file.file.size;
+}
+
+export function fromNativeMedia(files: { path: string; name: string; size: number }[]): QueuedFile[] {
+  return files.map((item, i) => {
+    const file = new File([], item.name);
+    return {
+      id: `native-${Date.now().toString(36)}-${i.toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+      file,
+      path: item.path,
+      nativePath: item.path,
+      size: item.size,
+    };
+  });
 }
 
 let counter = 0;
@@ -20,11 +39,7 @@ export function toQueued(files: File[], paths?: string[]): QueuedFile[] {
 }
 
 /* Minimal typings for the legacy entries API used for dropped folders. */
-interface FsEntry {
-  isFile: boolean;
-  isDirectory: boolean;
-  name: string;
-  fullPath: string;
+interface FsEntry extends FileSystemEntry {
   file?: (cb: (f: File) => void, err: (e: unknown) => void) => void;
   createReader?: () => { readEntries: (cb: (e: FsEntry[]) => void, err: (e: unknown) => void) => void };
 }
@@ -59,11 +74,12 @@ export async function filesFromDrop(dt: DataTransfer) {
 
 export interface DirHandle {
   name: string;
-  getFileHandle: (n: string, o: { create: boolean }) => Promise<{
+  getFileHandle?: (n: string, o: { create: boolean }) => Promise<{
     createWritable: () => Promise<{ write: (d: Blob) => Promise<void>; close: () => Promise<void> }>;
   }>;
   requestPermission?: (o: { mode: "readwrite" }) => Promise<string>;
   kind?: string;
+  path?: string;
 }
 
 export function canWriteFolders() {
@@ -92,6 +108,7 @@ export async function dirFromDrop(dt: DataTransfer): Promise<DirHandle | null> {
 }
 
 export async function writeToDir(dir: DirHandle, name: string, blob: Blob) {
+  if (!dir.getFileHandle) throw new Error("This destination is not a browser folder.");
   const fh = await dir.getFileHandle(name, { create: true });
   const w = await fh.createWritable();
   await w.write(blob);

@@ -21,6 +21,8 @@ src-tauri/icons/Square*.png
 src-tauri/icons/StoreLogo.png
 src-tauri/icons/icon.ico
 src-tauri/icons/icon.png
+src-tauri/binaries/ffmpeg-*
+src-tauri/binaries/ffprobe-*
 .output
 .vinxi
 .tanstack/**

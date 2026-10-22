@@ -1,12 +1,32 @@
-import { useMemo, useRef, useState } from "react";
-import { AlertTriangle, CheckCircle2, Copy, Download, FileCode2, Loader2, Play, Square, XCircle, FolderCheck } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Copy,
+  Download,
+  FileCode2,
+  Loader2,
+  Play,
+  Square,
+  XCircle,
+  FolderCheck,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { addHistory, formatBytes, type RunStatus } from "@/lib/history";
-import { downloadBlob, writeToDir, type DirHandle, type QueuedFile } from "@/lib/files";
+import { downloadBlob, queuedSize, writeToDir, type DirHandle, type QueuedFile } from "@/lib/files";
 import { runJob, useEngine } from "@/lib/engine";
+import {
+  activeNativeEngine,
+  cancelNativeFfmpeg,
+  defaultNativeOutputFolder,
+  runNativeFfmpeg,
+  useIsDesktopApp,
+  useNativeEngines,
+} from "@/lib/native-engine";
 import {
   buildCommand,
   commandArgs,
@@ -16,6 +36,7 @@ import {
   shellQuote,
   toShell,
   type Settings,
+  effectiveFormat,
 } from "@/lib/workflow";
 import { StepHeading, Note } from "./ui";
 
@@ -25,9 +46,16 @@ interface FileResult {
   blob?: Blob;
   error?: string;
   saved?: boolean;
+  nativeOutputPath?: string;
 }
 
-export function useCommands(s: Settings, files: QueuedFile[], sub: File | null) {
+export function useCommands(
+  s: Settings,
+  files: QueuedFile[],
+  sub: File | null,
+  nativeVideoEncoder?: "h264_videotoolbox" | "libx264",
+  nativeOutputFolder?: string | null,
+) {
   return useMemo(() => {
     // Keep browser-provided relative folder paths in desktop commands. `file.name`
     // drops that context, so scripts built from a selected folder would point at
@@ -36,12 +64,28 @@ export function useCommands(s: Settings, files: QueuedFile[], sub: File | null) 
     // Keep generated outputs in the selected destination folder/root. Only
     // desktop command inputs need their folder-relative paths.
     const outs = outputNames(files.length ? files.map((f) => f.file.name) : inputs, s);
-    return inputs.map((input, i) => ({
-      input,
-      output: outs[i],
-      parts: buildCommand(s, { input, output: outs[i], subtitle: s.subtitles.enabled ? sub?.name || "subtitles.srt" : undefined }),
-    }));
-  }, [s, files, sub]);
+    return inputs.map((input, i) => {
+      const output = outs[i] ?? "output.mp4";
+      const subtitle = s.subtitles.enabled
+        ? (sub as (File & { nativePath?: string }) | null)?.nativePath ||
+          sub?.name ||
+          "subtitles.srt"
+        : undefined;
+      const outputPath = nativeOutputFolder
+        ? `${nativeOutputFolder.replace(/\/$/, "")}/${output}`
+        : output;
+      return {
+        input,
+        output,
+        parts: buildCommand(s, {
+          input,
+          output: outputPath,
+          ...(subtitle ? { subtitle } : {}),
+          ...(nativeVideoEncoder ? { nativeVideoEncoder } : {}),
+        }),
+      };
+    });
+  }, [s, files, sub, nativeVideoEncoder, nativeOutputFolder]);
 }
 
 export function CommandBlock({ text }: { text: string }) {
@@ -64,26 +108,147 @@ export function ReviewStep({
   files: QueuedFile[];
   sub: File | null;
   dir: DirHandle | null;
-  onEdit: (step: "files" | "trim" | "subtitles") => void;
+  onEdit: (step: "files" | "trim" | "subtitles" | "format" | "resize" | "audio") => void;
 }) {
   const engine = useEngine();
-  const cmds = useCommands(s, files, sub);
+  const desktop = useIsDesktopApp();
+  const nativeState = useNativeEngines();
+  const nativeEngine = activeNativeEngine(nativeState.catalog);
+  const nativeVideoEncoder = nativeEngine?.encoders.includes("h264_videotoolbox")
+    ? "h264_videotoolbox"
+    : nativeEngine?.encoders.includes("libx264")
+      ? "libx264"
+      : undefined;
   const [which, setWhich] = useState(0);
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState<FileResult[] | null>(null);
   const [log, setLog] = useState<string[]>([]);
   const [summary, setSummary] = useState<{ status: RunStatus; ms: number } | null>(null);
+  const [nativeOutputFolder, setNativeOutputFolder] = useState<string | null>(dir?.path ?? null);
+  const cmds = useCommands(
+    s,
+    files,
+    sub,
+    desktop ? nativeVideoEncoder : undefined,
+    desktop ? nativeOutputFolder : undefined,
+  );
   const cancelRef = useRef(false);
-  const cur = cmds[Math.min(which, cmds.length - 1)];
+  const nativeRunId = useRef<string | null>(null);
+  const cur = cmds[Math.min(which, cmds.length - 1)] ?? {
+    input: "input.mp4",
+    output: "output.mp4",
+    parts: [],
+  };
   const shell = toShell(cur.parts);
+  const outputNameAt = (index: number) => cmds[index]?.output ?? "output.mp4";
 
-  const blockers: { msg: string; fix?: "files" | "trim" | "subtitles" }[] = [];
-  if (!files.length) blockers.push({ msg: "Add at least one file to run in the browser.", fix: "files" });
-  if (s.trim.enabled && ((s.trim.start && !isValidTime(s.trim.start)) || (s.trim.end && !isValidTime(s.trim.end))))
+  useEffect(() => {
+    if (!desktop) return;
+    if (dir?.path) {
+      setNativeOutputFolder(dir.path);
+      return;
+    }
+    defaultNativeOutputFolder()
+      .then(setNativeOutputFolder)
+      .catch(() => setNativeOutputFolder(null));
+  }, [desktop, dir?.path]);
+
+  const blockers: {
+    msg: string;
+    fix?: "files" | "trim" | "subtitles" | "format" | "resize" | "audio";
+    settings?: boolean;
+  }[] = [];
+  if (!files.length) blockers.push({ msg: "Add at least one file to run.", fix: "files" });
+  if (
+    s.trim.enabled &&
+    ((s.trim.start && !isValidTime(s.trim.start)) || (s.trim.end && !isValidTime(s.trim.end)))
+  )
     blockers.push({ msg: "The trim times aren't valid.", fix: "trim" });
   if (s.subtitles.enabled && !sub && s.operation !== "gif" && s.operation !== "extract-audio")
     blockers.push({ msg: "Choose a subtitle file, or skip subtitles.", fix: "subtitles" });
-  if (engine.status === "unsupported") blockers.push({ msg: engine.message });
+  if (desktop) {
+    if (!nativeEngine)
+      blockers.push({
+        msg: nativeState.loading
+          ? "Checking FFmpeg engines…"
+          : "Choose a compatible FFmpeg engine in Settings.",
+        settings: true,
+      });
+    else if (!nativeEngine.compatible)
+      blockers.push({
+        msg: "The selected FFmpeg build is missing a feature Framewise needs.",
+        settings: true,
+      });
+    else {
+      const fmt = effectiveFormat(s);
+      const encoders = new Set(nativeEngine.encoders);
+      const filters = new Set(nativeEngine.filters);
+      const needsVideo = fmt !== "gif" && !["mp3", "m4a", "wav", "ogg"].includes(fmt);
+      if (needsVideo && fmt === "webm" && !encoders.has("libvpx-vp9"))
+        blockers.push({
+          msg: "This engine cannot encode VP9 WebM. Choose a different engine or output format.",
+          fix: "format",
+          settings: true,
+        });
+      else if (needsVideo && !encoders.has("libx264") && !encoders.has("h264_videotoolbox"))
+        blockers.push({
+          msg: "This engine has no compatible H.264 encoder.",
+          fix: "format",
+          settings: true,
+        });
+      if (fmt === "mp3" && !encoders.has("libmp3lame"))
+        blockers.push({
+          msg: "MP3 encoding is not included in this engine. Choose an engine with libmp3lame, or switch to M4A/WAV.",
+          fix: "format",
+          settings: true,
+        });
+      if (fmt === "ogg" && !encoders.has("libvorbis"))
+        blockers.push({
+          msg: "Ogg Vorbis encoding is not included in this engine. Choose an engine with libvorbis, or switch to M4A/WAV.",
+          fix: "format",
+          settings: true,
+        });
+      if (fmt === "webm" && s.audio.mode !== "remove" && !encoders.has("libopus"))
+        blockers.push({
+          msg: "This engine cannot encode Opus audio for WebM. Choose an engine with libopus, or remove audio.",
+          fix: "audio",
+          settings: true,
+        });
+      if (s.subtitles.enabled && s.subtitles.mode === "burn" && !filters.has("subtitles"))
+        blockers.push({
+          msg: "Burned-in subtitles need the FFmpeg subtitles filter, which this engine does not include.",
+          fix: "subtitles",
+          settings: true,
+        });
+      if (s.resize.enabled && !filters.has("scale"))
+        blockers.push({
+          msg: "This engine does not include the scale filter needed for resizing.",
+          fix: "resize",
+          settings: true,
+        });
+      if (
+        s.resize.enabled &&
+        ["square", "vertical"].includes(s.resize.preset) &&
+        !filters.has("crop")
+      )
+        blockers.push({
+          msg: "This engine does not include the crop filter needed for that resize.",
+          fix: "resize",
+          settings: true,
+        });
+      if (s.audio.mode === "normalize" && !filters.has("loudnorm"))
+        blockers.push({
+          msg: "Volume normalization needs the loudnorm filter, which this engine does not include.",
+          fix: "audio",
+          settings: true,
+        });
+      if (fmt === "gif" && (!filters.has("palettegen") || !filters.has("paletteuse")))
+        blockers.push({
+          msg: "This engine is missing the palette filters needed for GIF output.",
+          settings: true,
+        });
+    }
+  } else if (engine.status === "unsupported") blockers.push({ msg: engine.message });
 
   const copy = async (text: string) => {
     try {
@@ -103,7 +268,10 @@ export function ReviewStep({
       "",
     ];
     cmds.forEach((c) => lines.push(toShell(c.parts)));
-    downloadBlob(new Blob([lines.join("\n") + "\n"], { type: "text/x-shellscript" }), "framewise-commands.sh");
+    downloadBlob(
+      new Blob([lines.join("\n") + "\n"], { type: "text/x-shellscript" }),
+      "framewise-commands.sh",
+    );
   };
 
   const run = async () => {
@@ -113,24 +281,105 @@ export function ReviewStep({
     cancelRef.current = false;
     const started = Date.now();
     setResults(files.map(() => ({ state: "waiting", progress: 0 })));
-    const patch = (i: number, p: Partial<FileResult>) => setResults((r) => (r ? r.map((x, j) => (j === i ? { ...x, ...p } : x)) : r));
-    let res: Awaited<ReturnType<typeof runJob>> = [];
+    const patch = (i: number, p: Partial<FileResult>) =>
+      setResults((r) => (r ? r.map((x, j) => (j === i ? { ...x, ...p } : x)) : r));
+    let res: {
+      index: number;
+      ok: boolean;
+      blob?: Blob;
+      error?: string;
+      nativeOutputPath?: string;
+    }[] = [];
     let fatal: string | undefined;
     try {
-      res = await runJob(
-        files.map((f, i) => ({
-          file: f.file,
-          outputName: cmds[i].output,
-          args: (input, output, subtitle) =>
-            commandArgs(buildCommand(s, { input, output, subtitle: s.subtitles.enabled ? subtitle : undefined })),
-        })),
-        s.subtitles.enabled ? sub : null,
-        {
-          onFileStart: (i) => patch(i, { state: "running", progress: 0 }),
-          onProgress: (i, p) => patch(i, { progress: p }),
-          onLog: (line) => setLog((l) => [...l.slice(-300), line]),
-        },
-      );
+      if (desktop) {
+        if (!nativeEngine) throw new Error("Choose a compatible FFmpeg engine in Settings.");
+        const outputFolder = dir?.path ?? nativeOutputFolder ?? (await defaultNativeOutputFolder());
+        setNativeOutputFolder(outputFolder);
+        const nativeResults: {
+          index: number;
+          ok: boolean;
+          error?: string;
+          nativeOutputPath?: string;
+        }[] = [];
+        for (let i = 0; i < files.length; i++) {
+          if (cancelRef.current) break;
+          const file = files[i];
+          if (!file) continue;
+          patch(i, { state: "running", progress: 0 });
+          const input = file.nativePath ?? file.path;
+          const outputName = outputNameAt(i);
+          const outputPath = `${outputFolder.replace(/\/$/, "")}/${outputName}`;
+          const subtitlePath = s.subtitles.enabled
+            ? ((sub as (File & { nativePath?: string }) | null)?.nativePath ?? sub?.name)
+            : undefined;
+          const parts = buildCommand(s, {
+            input,
+            output: outputPath,
+            ...(subtitlePath ? { subtitle: subtitlePath } : {}),
+            ...(nativeVideoEncoder ? { nativeVideoEncoder } : {}),
+          });
+          const outcome = await runNativeFfmpeg(nativeEngine.path, commandArgs(parts), {
+            onProgress: (ratio) => patch(i, { progress: ratio }),
+            onLog: (line) => setLog((lines) => [...lines.slice(-300), line]),
+            onRunId: (id) => {
+              nativeRunId.current = id;
+            },
+          });
+          nativeRunId.current = null;
+          const result: {
+            index: number;
+            ok: boolean;
+            error?: string;
+            nativeOutputPath?: string;
+          } = {
+            index: i,
+            ok: outcome.success,
+          };
+          if (outcome.cancelled) result.error = "Stopped by you.";
+          else if (!outcome.success)
+            result.error =
+              outcome.log.split("\n").filter(Boolean).slice(-3).join(" ") ||
+              `FFmpeg exited with code ${outcome.exitCode ?? "unknown"}.`;
+          if (outcome.success) result.nativeOutputPath = outputPath;
+          nativeResults.push(result);
+          if (outcome.cancelled) {
+            cancelRef.current = true;
+            break;
+          }
+        }
+        res = nativeResults;
+        if (cancelRef.current)
+          setResults(
+            (items) =>
+              items?.map((item) =>
+                item.state === "waiting"
+                  ? { ...item, state: "failed", error: "Stopped by you." }
+                  : item,
+              ) ?? null,
+          );
+      } else {
+        res = await runJob(
+          files.map((f, i) => ({
+            file: f.file,
+            outputName: outputNameAt(i),
+            args: (input, output, subtitle) =>
+              commandArgs(
+                buildCommand(s, {
+                  input,
+                  output,
+                  ...(s.subtitles.enabled && subtitle ? { subtitle } : {}),
+                }),
+              ),
+          })),
+          s.subtitles.enabled ? sub : null,
+          {
+            onFileStart: (i) => patch(i, { state: "running", progress: 0 }),
+            onProgress: (i, p) => patch(i, { progress: p }),
+            onLog: (line) => setLog((l) => [...l.slice(-300), line]),
+          },
+        );
+      }
     } catch (e) {
       fatal = e instanceof Error ? e.message : "The engine couldn't start.";
     }
@@ -139,41 +388,63 @@ export function ReviewStep({
       let error = r.error;
       if (r.ok && r.blob && dir) {
         try {
-          await writeToDir(dir, cmds[r.index].output, r.blob);
+          await writeToDir(dir, outputNameAt(r.index), r.blob);
           saved = true;
         } catch (e) {
           error = `Converted, but couldn't save to the folder: ${e instanceof Error ? e.message : e}. Use download instead.`;
         }
       }
-      patch(r.index, { state: r.ok ? "done" : "failed", progress: r.ok ? 1 : 0, blob: r.blob, error, saved });
+      const resultPatch: Partial<FileResult> = {
+        state: r.ok ? "done" : "failed",
+        progress: r.ok ? 1 : 0,
+        saved,
+      };
+      if (r.blob) resultPatch.blob = r.blob;
+      if (error !== undefined) resultPatch.error = error;
+      if (r.nativeOutputPath) resultPatch.nativeOutputPath = r.nativeOutputPath;
+      patch(r.index, resultPatch);
     }
-    if (fatal) setResults((rs) => rs?.map((x) => ({ ...x, state: "failed", error: fatal })) ?? null);
+    if (fatal)
+      setResults((rs) => rs?.map((x) => ({ ...x, state: "failed", error: fatal })) ?? null);
     const ok = res.filter((r) => r.ok).length;
-    const status: RunStatus = fatal || ok === 0 ? "failed" : ok === files.length ? "success" : "partial";
+    const status: RunStatus =
+      fatal || ok === 0 ? "failed" : ok === files.length ? "success" : "partial";
     const ms = Date.now() - started;
     setSummary({ status, ms });
+    const historyError = fatal ?? res.find((r) => !r.ok)?.error;
     addHistory({
       id: `${started.toString(36)}${Math.floor(started % 997).toString(36)}`,
-      name: `${OPERATIONS[s.operation].label} — ${files[0].file.name}${files.length > 1 ? ` +${files.length - 1}` : ""}`,
+      name: `${OPERATIONS[s.operation].label} — ${files[0]?.file.name ?? "media"}${files.length > 1 ? ` +${files.length - 1}` : ""}`,
       date: new Date(started).toISOString(),
       settings: s,
-      files: files.map((f) => ({ name: f.path, size: f.file.size })),
-      outputs: res.filter((r) => r.ok).map((r) => cmds[r.index].output),
-      command: toShell(cmds[0].parts),
+      files: files.map((f) => ({ name: f.path, size: queuedSize(f) })),
+      outputs: res.filter((r) => r.ok).map((r) => outputNameAt(r.index)),
+      command: toShell(cmds[0]?.parts ?? []),
       status,
       destination: dir ? "folder" : "download",
       durationMs: ms,
-      error: fatal ?? res.find((r) => !r.ok)?.error,
+      ...(historyError ? { error: historyError } : {}),
     });
     setRunning(false);
-    if (status === "success") toast.success(`Converted ${ok} file${ok > 1 ? "s" : ""} in your browser`);
+    if (status === "success")
+      toast.success(
+        `Converted ${ok} file${ok > 1 ? "s" : ""} ${desktop ? "on your Mac" : "in your browser"}`,
+      );
     else if (status === "partial") toast.warning(`${ok} of ${files.length} files converted`);
     else toast.error("The conversion didn't finish — check the log below.");
   };
 
   return (
     <div>
-      <StepHeading eyebrow="Step · Review" title="Here's your FFmpeg command" desc="Every part is explained below. Copy it for desktop FFmpeg, or run it right here in your browser." />
+      <StepHeading
+        eyebrow="Step · Review"
+        title="Here's your FFmpeg command"
+        desc={
+          desktop
+            ? "Review the exact command. Framewise runs this native FFmpeg engine directly on your Mac."
+            : "Every part is explained below. Copy it for desktop FFmpeg, or run it right here in your browser."
+        }
+      />
 
       {cmds.length > 1 && (
         <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
@@ -199,7 +470,10 @@ export function ReviewStep({
           <Copy className="size-4" /> Copy command
         </Button>
         {cmds.length > 1 && (
-          <Button variant="outline" onClick={() => copy(cmds.map((c) => toShell(c.parts)).join("\n"))}>
+          <Button
+            variant="outline"
+            onClick={() => copy(cmds.map((c) => toShell(c.parts)).join("\n"))}
+          >
             <Copy className="size-4" /> Copy all {cmds.length}
           </Button>
         )}
@@ -213,11 +487,15 @@ export function ReviewStep({
         <ol className="divide-y">
           <li className="flex flex-col gap-1 px-4 py-2.5 sm:flex-row sm:gap-4">
             <code className="w-full shrink-0 font-mono text-xs text-primary sm:w-56">ffmpeg</code>
-            <span className="text-sm text-muted-foreground">Start FFmpeg, the open-source media toolkit.</span>
+            <span className="text-sm text-muted-foreground">
+              Start FFmpeg, the open-source media toolkit.
+            </span>
           </li>
           {cur.parts.map((p, i) => (
             <li key={i} className="flex flex-col gap-1 px-4 py-2.5 sm:flex-row sm:gap-4">
-              <code className="w-full shrink-0 break-all font-mono text-xs text-primary sm:w-56">{p.tokens.map(shellQuote).join(" ")}</code>
+              <code className="w-full shrink-0 break-all font-mono text-xs text-primary sm:w-56">
+                {p.tokens.map(shellQuote).join(" ")}
+              </code>
               <span className="text-sm text-muted-foreground">{p.explain}</span>
             </li>
           ))}
@@ -227,15 +505,37 @@ export function ReviewStep({
       <div className="mt-6 rounded-2xl border bg-card p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h3 className="text-base font-semibold">Run in this browser</h3>
+            <h3 className="text-base font-semibold">
+              {desktop
+                ? `Run with ${nativeEngine?.bundled ? "bundled" : "selected"} FFmpeg`
+                : "Run in this browser"}
+            </h3>
             <p className="mt-1 max-w-md text-xs leading-relaxed text-muted-foreground">
-              Uses FFmpeg compiled to WebAssembly, locally in this tab. Nothing is uploaded. It's slower than desktop FFmpeg, so keep this tab open.
+              {desktop
+                ? "Runs FFmpeg as a native Mac process. Your media stays on this Mac and finished files go to the selected folder."
+                : "Uses FFmpeg compiled to WebAssembly, locally in this tab. Nothing is uploaded. It's slower than desktop FFmpeg, so keep this tab open."}
             </p>
           </div>
           <Button variant="brand" size="lg" onClick={run} disabled={running || blockers.length > 0}>
             {running ? <Loader2 className="size-4 animate-spin" /> : <Play className="size-4" />}
-            {running ? (engine.status === "loading" ? "Loading engine…" : "Converting…") : `Run on ${files.length || 0} file${files.length === 1 ? "" : "s"}`}
+            {running
+              ? !desktop && engine.status === "loading"
+                ? "Loading engine…"
+                : "Converting…"
+              : `Run on ${files.length || 0} file${files.length === 1 ? "" : "s"}`}
           </Button>
+          {running && desktop && (
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => {
+                cancelRef.current = true;
+                if (nativeRunId.current) cancelNativeFfmpeg(nativeRunId.current).catch(() => {});
+              }}
+            >
+              <Square className="size-4" /> Stop
+            </Button>
+          )}
         </div>
 
         {blockers.length > 0 && !running && (
@@ -244,9 +544,17 @@ export function ReviewStep({
               <li key={b.msg} className="flex items-center gap-2 text-xs text-warning-foreground">
                 <AlertTriangle className="size-3.5 text-warning" /> {b.msg}
                 {b.fix && (
-                  <button className="font-semibold text-primary hover:underline" onClick={() => onEdit(b.fix!)}>
+                  <button
+                    className="font-semibold text-primary hover:underline"
+                    onClick={() => onEdit(b.fix!)}
+                  >
                     Fix
                   </button>
+                )}
+                {b.settings && (
+                  <Link className="font-semibold text-primary hover:underline" to="/settings">
+                    Settings
+                  </Link>
                 )}
               </li>
             ))}
@@ -271,7 +579,9 @@ export function ReviewStep({
                     <div className="truncate text-sm font-medium">{cmds[i]?.output}</div>
                     <div className="text-[11px] text-muted-foreground">
                       {r.state === "done"
-                        ? `${formatBytes(r.blob?.size ?? 0)}${r.saved ? ` · saved to ${dir?.name}` : ""}`
+                        ? r.nativeOutputPath
+                          ? `Saved to ${dir?.name || "Downloads"}`
+                          : `${formatBytes(r.blob?.size ?? 0)}${r.saved ? ` · saved to ${dir?.name}` : ""}`
                         : r.state === "failed"
                           ? r.error
                           : r.state === "running"
@@ -280,13 +590,19 @@ export function ReviewStep({
                     </div>
                   </div>
                   {r.state === "done" && r.blob && !r.saved && (
-                    <Button size="sm" variant="outline" onClick={() => downloadBlob(r.blob!, cmds[i].output)}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => downloadBlob(r.blob!, outputNameAt(i))}
+                    >
                       <Download className="size-3.5" /> Download
                     </Button>
                   )}
                   {r.saved && <FolderCheck className="size-4 text-success" />}
                 </div>
-                {r.state === "running" && <Progress value={r.progress * 100} className="mt-2 h-1.5" />}
+                {r.state === "running" && (
+                  <Progress value={r.progress * 100} className="mt-2 h-1.5" />
+                )}
               </li>
             ))}
           </ul>
@@ -296,7 +612,11 @@ export function ReviewStep({
           <div
             className={cn(
               "mt-4 rounded-xl px-3.5 py-2.5 text-sm",
-              summary.status === "success" ? "bg-success/10 text-success" : summary.status === "partial" ? "bg-warning/15 text-warning-foreground" : "bg-destructive/10 text-destructive",
+              summary.status === "success"
+                ? "bg-success/10 text-success"
+                : summary.status === "partial"
+                  ? "bg-warning/15 text-warning-foreground"
+                  : "bg-destructive/10 text-destructive",
             )}
           >
             {summary.status === "success"
@@ -309,23 +629,34 @@ export function ReviewStep({
 
         {log.length > 0 && (
           <details className="mt-4">
-            <summary className="cursor-pointer text-xs font-semibold text-muted-foreground hover:text-foreground">Engine log ({log.length} lines)</summary>
-            <pre className="mt-2 max-h-56 overflow-auto rounded-lg bg-ink p-3 font-mono text-[11px] text-ink-foreground/80">{log.join("\n")}</pre>
+            <summary className="cursor-pointer text-xs font-semibold text-muted-foreground hover:text-foreground">
+              Engine log ({log.length} lines)
+            </summary>
+            <pre className="mt-2 max-h-56 overflow-auto rounded-lg bg-ink p-3 font-mono text-[11px] text-ink-foreground/80">
+              {log.join("\n")}
+            </pre>
           </details>
         )}
-        {results && results.some((r) => r.state === "done" && !r.saved) && results.filter((r) => r.blob).length > 1 && (
-          <Button
-            className="mt-3"
-            variant="outline"
-            onClick={() => results.forEach((r, i) => r.blob && !r.saved && downloadBlob(r.blob, cmds[i].output))}
-          >
-            <Download className="size-4" /> Download all
-          </Button>
-        )}
-        {!results && (
+        {results &&
+          results.some((r) => r.state === "done" && !r.saved) &&
+          results.filter((r) => r.blob).length > 1 && (
+            <Button
+              className="mt-3"
+              variant="outline"
+              onClick={() =>
+                results.forEach(
+                  (r, i) => r.blob && !r.saved && downloadBlob(r.blob, outputNameAt(i)),
+                )
+              }
+            >
+              <Download className="size-4" /> Download all
+            </Button>
+          )}
+        {!results && !desktop && (
           <div className="mt-4">
             <Note>
-              The first run downloads the FFmpeg engine (about 31 MB) from a public CDN. After that it's cached by your browser.
+              The first run downloads the FFmpeg engine (about 31 MB) from a public CDN. After that
+              it's cached by your browser.
             </Note>
           </div>
         )}

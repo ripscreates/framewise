@@ -195,6 +195,7 @@ export interface BuildInput {
   input: string;
   output: string;
   subtitle?: string;
+  nativeVideoEncoder?: "h264_videotoolbox" | "libx264";
 }
 
 export function buildCommand(s: Settings, io: BuildInput): CommandPart[] {
@@ -241,7 +242,7 @@ export function buildCommand(s: Settings, io: BuildInput): CommandPart[] {
       ogg: ["-c:a", "libvorbis"],
     };
     parts.push({
-      tokens: codec[fmt],
+      tokens: codec[fmt] ?? ["-c:a", "aac"],
       explain: fmt === "wav" ? "Write uncompressed WAV audio (largest, lossless)." : `Encode the audio as ${fmt.toUpperCase()}.`,
     });
     if (fmt !== "wav")
@@ -276,6 +277,13 @@ export function buildCommand(s: Settings, io: BuildInput): CommandPart[] {
     parts.push({
       tokens: ["-c:v", "libvpx-vp9", "-crf", String(CRF_VP9[level]), "-b:v", "0", "-deadline", "good", "-cpu-used", CPU_VP9[speed], "-row-mt", "1"],
       explain: `Encode video as VP9 at “${QUALITY_LABEL[level]}” quality (CRF ${CRF_VP9[level]}; lower numbers look better but are bigger).`,
+    });
+  } else if (io.nativeVideoEncoder === "h264_videotoolbox") {
+    const targetBitrate: Record<QualityLevel, string> = { high: "8M", balanced: "4M", small: "2M", tiny: "900k" };
+    const bitrate = targetBitrate[level];
+    parts.push({
+      tokens: ["-c:v", "h264_videotoolbox", "-b:v", bitrate, "-pix_fmt", "yuv420p"],
+      explain: `Encode with Apple's hardware H.264 engine at an approximate ${bitrate} bitrate target. The target may vary with resolution; the speed choice is handled by the hardware encoder.`,
     });
   } else {
     parts.push({

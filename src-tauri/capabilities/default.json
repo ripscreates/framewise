@@ -3,5 +3,5 @@
   "identifier": "default",
   "description": "Base permissions for the Framewise window.",
   "windows": ["main"],
-  "permissions": ["core:default"]
+  "permissions": ["core:default", "dialog:allow-open"]
 }

@@ -104,7 +104,7 @@ export async function runJob(
     for (let i = 0; i < files.length; i++) {
       current = i;
       cb.onFileStart(i);
-      const f = files[i];
+      const f = files[i]!;
       const inExt = f.file.name.split(".").pop()?.toLowerCase() || "bin";
       const outExt = f.outputName.split(".").pop() || "mp4";
       const inName = `in_${i}.${inExt}`;
