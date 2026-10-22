@@ -10,13 +10,20 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as GuideRouteImport } from './routes/guide'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as HistoryRouteImport } from './routes/history'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as V1RetrospectiveRouteImport } from './routes/v1-retrospective'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuideRoute = GuideRouteImport.update({
+  id: '/guide',
+  path: '/guide',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HelpRoute = HelpRouteImport.update({
@@ -29,6 +36,11 @@ const HistoryRoute = HistoryRouteImport.update({
   path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const V1RetrospectiveRoute = V1RetrospectiveRouteImport.update({
   id: '/v1-retrospective',
   path: '/v1-retrospective',
@@ -37,35 +49,51 @@ const V1RetrospectiveRoute = V1RetrospectiveRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/guide': typeof GuideRoute
   '/help': typeof HelpRoute
   '/history': typeof HistoryRoute
+  '/settings': typeof SettingsRoute
   '/v1-retrospective': typeof V1RetrospectiveRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/guide': typeof GuideRoute
   '/help': typeof HelpRoute
   '/history': typeof HistoryRoute
+  '/settings': typeof SettingsRoute
   '/v1-retrospective': typeof V1RetrospectiveRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/guide': typeof GuideRoute
   '/help': typeof HelpRoute
   '/history': typeof HistoryRoute
+  '/settings': typeof SettingsRoute
   '/v1-retrospective': typeof V1RetrospectiveRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/help' | '/history' | '/v1-retrospective'
+  fullPaths:
+    '/' | '/guide' | '/help' | '/history' | '/settings' | '/v1-retrospective'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/help' | '/history' | '/v1-retrospective'
-  id: '__root__' | '/' | '/help' | '/history' | '/v1-retrospective'
+  to: '/' | '/guide' | '/help' | '/history' | '/settings' | '/v1-retrospective'
+  id:
+    | '__root__'
+    | '/'
+    | '/guide'
+    | '/help'
+    | '/history'
+    | '/settings'
+    | '/v1-retrospective'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  GuideRoute: typeof GuideRoute
   HelpRoute: typeof HelpRoute
   HistoryRoute: typeof HistoryRoute
+  SettingsRoute: typeof SettingsRoute
   V1RetrospectiveRoute: typeof V1RetrospectiveRoute
 }
 
@@ -76,6 +104,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide': {
+      id: '/guide'
+      path: '/guide'
+      fullPath: '/guide'
+      preLoaderRoute: typeof GuideRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/help': {
@@ -92,6 +127,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/v1-retrospective': {
       id: '/v1-retrospective'
       path: '/v1-retrospective'
@@ -104,8 +146,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  GuideRoute: GuideRoute,
   HelpRoute: HelpRoute,
   HistoryRoute: HistoryRoute,
+  SettingsRoute: SettingsRoute,
   V1RetrospectiveRoute: V1RetrospectiveRoute,
 }
 export const routeTree = rootRouteImport

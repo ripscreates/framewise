@@ -1,5 +1,8 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import type { UnlistenFn } from "@tauri-apps/api/event";
+import { toast } from "sonner";
 import {
   ArrowRight,
   AudioLines,
@@ -38,11 +41,20 @@ import {
   dirFromDrop,
   filesFromDrop,
   isMedia,
+  fromNativeMedia,
   pickDirectory,
+  queuedSize,
   toQueued,
   type DirHandle,
   type QueuedFile,
 } from "@/lib/files";
+import {
+  chooseNativeMedia,
+  chooseNativeOutputFolder,
+  chooseNativeSubtitle,
+  nativeMediaFiles,
+  useIsDesktopApp,
+} from "@/lib/native-engine";
 import {
   AUDIO_FORMATS,
   effectiveFormat,
@@ -288,12 +300,13 @@ export function FilesStep({
   const dirRef = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
   const [skipped, setSkipped] = useState(0);
+  const desktop = useIsDesktopApp();
 
   const add = (items: { file: File; path: string }[]) => {
     const media = items.filter((i) => isMedia(i.file));
     setSkipped(items.length - media.length);
     setQueue((q) => {
-      const seen = new Set(q.map((x) => `${x.path}:${x.file.size}`));
+      const seen = new Set(q.map((x) => `${x.path}:${queuedSize(x)}`));
       const fresh = media.filter((m) => !seen.has(`${m.path}:${m.file.size}`));
       return [
         ...q,
@@ -304,8 +317,52 @@ export function FilesStep({
       ];
     });
   };
-  const total = queue.reduce((n, q) => n + q.file.size, 0);
-  const big = queue.some((q) => q.file.size > 1.5 * 1024 ** 3);
+  const addNativeFiles = useCallback(
+    (nativeFiles: Awaited<ReturnType<typeof nativeMediaFiles>>) => {
+      const incoming = fromNativeMedia(nativeFiles);
+      setSkipped(0);
+      setQueue((current) => {
+        const seen = new Set(current.map((item) => item.path));
+        return [...current, ...incoming.filter((item) => !seen.has(item.path))];
+      });
+      if (nativeFiles.length >= 5000) toast.warning("Showing the first 5,000 matching files.");
+    },
+    [setQueue],
+  );
+  const addNative = useCallback(
+    async (paths: string[]) => {
+      try {
+        addNativeFiles(await nativeMediaFiles(paths));
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Could not read those media files.");
+      }
+    },
+    [addNativeFiles],
+  );
+  useEffect(() => {
+    if (!desktop) return;
+    let unlisten: UnlistenFn | undefined;
+    let mounted = true;
+    getCurrentWindow()
+      .onDragDropEvent(({ payload }) => {
+        if (payload.type === "enter" || payload.type === "over") setOver(true);
+        if (payload.type === "leave") setOver(false);
+        if (payload.type === "drop") {
+          setOver(false);
+          void addNative(payload.paths);
+        }
+      })
+      .then((stop) => {
+        if (mounted) unlisten = stop;
+        else stop();
+      });
+    return () => {
+      mounted = false;
+      unlisten?.();
+    };
+  }, [desktop, addNative]);
+  const total = queue.reduce((n, q) => n + queuedSize(q), 0);
+  const big = queue.some((q) => queuedSize(q) > 1.5 * 1024 ** 3);
 
   return (
     <div>
@@ -338,10 +395,34 @@ export function FilesStep({
           Video and audio files — MP4, MOV, MKV, WebM, MP3, WAV and more
         </p>
         <div className="mt-4 flex flex-wrap justify-center gap-2">
-          <Button variant="outline" onClick={() => fileRef.current?.click()}>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              if (!desktop) return fileRef.current?.click();
+              try {
+                addNativeFiles(await chooseNativeMedia("files"));
+              } catch (error) {
+                toast.error(
+                  error instanceof Error ? error.message : "Could not choose those media files.",
+                );
+              }
+            }}
+          >
             <FileVideo className="size-4" /> Choose files
           </Button>
-          <Button variant="outline" onClick={() => dirRef.current?.click()}>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              if (!desktop) return dirRef.current?.click();
+              try {
+                addNativeFiles(await chooseNativeMedia("folder"));
+              } catch (error) {
+                toast.error(
+                  error instanceof Error ? error.message : "Could not choose that media folder.",
+                );
+              }
+            }}
+          >
             <FolderOpen className="size-4" /> Choose a folder
           </Button>
         </div>
@@ -412,7 +493,8 @@ export function FilesStep({
                   onClick={() => !batch && setActiveId(q.id)}
                 >
                   <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
-                    {q.file.type.startsWith("audio") ? (
+                    {q.file.type.startsWith("audio") ||
+                    /\.(mp3|wav|m4a|aac|flac|ogg|opus)$/i.test(q.file.name) ? (
                       <AudioLines className="size-4" />
                     ) : (
                       <Film className="size-4" />
@@ -421,7 +503,8 @@ export function FilesStep({
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium">{q.path}</div>
                     <div className="text-[11px] text-muted-foreground">
-                      {formatBytes(q.file.size)} · {q.file.type || "unknown type"}
+                      {formatBytes(queuedSize(q))} ·{" "}
+                      {q.file.type || q.file.name.split(".").pop()?.toUpperCase() || "media"}
                     </div>
                   </div>
                   {!batch && (
@@ -496,8 +579,8 @@ export function FormatStep({ s, upd }: { s: Settings; upd: Upd }) {
             selected={fmt === f}
             onClick={() => upd((x) => ({ ...x, format: f }))}
             title={f.toUpperCase()}
-            desc={desc[f]}
-            badge={i === 0 ? "Recommended" : undefined}
+            {...(desc[f] ? { desc: desc[f] } : {})}
+            {...(i === 0 ? { badge: "Recommended" } : {})}
           />
         ))}
       </div>
@@ -587,7 +670,7 @@ export function ResizeStep({ s, upd }: { s: Settings; upd: Upd }) {
                 upd((x) => ({
                   ...x,
                   resize: { ...x.resize, enabled: true },
-                  gif: { ...x.gif, width: v },
+                  gif: { ...x.gif, width: v ?? x.gif.width },
                 }))
               }
             />
@@ -598,7 +681,9 @@ export function ResizeStep({ s, upd }: { s: Settings; upd: Upd }) {
               max={30}
               step={1}
               value={[s.gif.fps]}
-              onValueChange={([v]) => upd((x) => ({ ...x, gif: { ...x.gif, fps: v } }))}
+              onValueChange={([v]) =>
+                upd((x) => ({ ...x, gif: { ...x.gif, fps: v ?? x.gif.fps } }))
+              }
             />
           </Field>
         </div>
@@ -662,7 +747,7 @@ export function ResizeStep({ s, upd }: { s: Settings; upd: Upd }) {
             icon={o.icon}
             title={o.t}
             desc={o.d}
-            badge={o.badge}
+            {...(o.badge ? { badge: o.badge } : {})}
           />
         ))}
       </div>
@@ -745,7 +830,12 @@ export function TrimStep({ s, upd }: { s: Settings; upd: Upd }) {
           <button
             key={t}
             type="button"
-            onClick={() => upd((x) => ({ ...x, trim: { enabled: true, start: a, end: b } }))}
+            onClick={() =>
+              upd((x) => ({
+                ...x,
+                trim: { enabled: true, start: a ?? x.trim.start, end: b ?? x.trim.end },
+              }))
+            }
             className="rounded-full border bg-card px-3 py-1 text-xs hover:border-primary/40"
           >
             {t}
@@ -830,6 +920,20 @@ export function SubtitlesStep({
   setSub: (f: File | null) => void;
 }) {
   const ref = useRef<HTMLInputElement>(null);
+  const desktop = useIsDesktopApp();
+  const choose = async () => {
+    if (!desktop) return ref.current?.click();
+    try {
+      const path = await chooseNativeSubtitle();
+      if (!path) return;
+      const file = new File([], path.split("/").pop() || "subtitles.srt");
+      Object.assign(file, { nativePath: path });
+      setSub(file);
+      upd((x) => ({ ...x, subtitles: { ...x.subtitles, enabled: true } }));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not choose that subtitle file.");
+    }
+  };
   return (
     <div>
       <StepHeading
@@ -838,13 +942,17 @@ export function SubtitlesStep({
         desc="Pick an .srt, .vtt or .ass file. It'll be applied to every video in the batch."
       />
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border bg-card p-4">
-        <Button variant="outline" onClick={() => ref.current?.click()}>
+        <Button variant="outline" onClick={choose}>
           <Captions className="size-4" /> {sub ? "Replace file" : "Choose subtitle file"}
         </Button>
         {sub ? (
           <span className="flex items-center gap-2 text-sm">
             {sub.name}{" "}
-            <span className="text-xs text-muted-foreground">{formatBytes(sub.size)}</span>
+            <span className="text-xs text-muted-foreground">
+              {(sub as File & { nativePath?: string }).nativePath
+                ? "On this Mac"
+                : formatBytes(sub.size)}
+            </span>
             <button
               type="button"
               aria-label="Remove subtitle file"
@@ -915,7 +1023,8 @@ export function OutputStep({
   setDir: (d: DirHandle | null) => void;
 }) {
   const [over, setOver] = useState(false);
-  const supported = canWriteFolders();
+  const desktop = useIsDesktopApp();
+  const supported = desktop || canWriteFolders();
   const preview = names.length ? outputNames(names, s) : outputNames(["my-video.mp4"], s);
   return (
     <div>
@@ -994,7 +1103,21 @@ export function OutputStep({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={async () => setDir(await pickDirectory())}
+                  onClick={async () => {
+                    if (desktop) {
+                      try {
+                        const path = await chooseNativeOutputFolder();
+                        if (path)
+                          setDir({ name: path.split("/").filter(Boolean).pop() || path, path });
+                      } catch (error) {
+                        toast.error(
+                          error instanceof Error ? error.message : "Could not choose that folder.",
+                        );
+                      }
+                    } else {
+                      setDir(await pickDirectory());
+                    }
+                  }}
                 >
                   <FolderOpen className="size-3.5" /> {dir ? "Change folder" : "Choose folder"}
                 </Button>

@@ -63,10 +63,10 @@ export function matchIntent(text: string): IntentMatch | null {
 
   const first = q.match(/\bfirst (\d+(?:\.\d+)?)\s*(s|sec|secs|seconds?|m|min|mins|minutes?)?\b/);
   const range = q.match(/\bfrom (\d{1,2}:\d{2}(?::\d{2})?|\d+)\s*(?:s|sec|seconds?)?\s*(?:to|-|until)\s*(\d{1,2}:\d{2}(?::\d{2})?|\d+)/);
-  if (first) {
+  if (first?.[1]) {
     s.trim = { enabled: true, start: "00:00:00", end: fmtTime(parseSeconds(first[1], first[2])) };
     notes.push(`only the first ${first[1]}${first[2] && /^m/.test(first[2]) ? " min" : "s"}`);
-  } else if (range) {
+  } else if (range?.[1] && range[2]) {
     const norm = (v: string) => (v.includes(":") ? v : fmtTime(parseFloat(v)));
     s.trim = { enabled: true, start: norm(range[1]), end: norm(range[2]) };
     notes.push(`the part from ${s.trim.start} to ${s.trim.end}`);

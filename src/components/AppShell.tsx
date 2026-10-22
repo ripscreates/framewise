@@ -1,7 +1,14 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
-import { Clapperboard, History, LifeBuoy, Sparkles, Loader2 } from "lucide-react";
+import { Clapperboard, History, LifeBuoy, Sparkles, Loader2, Settings2 } from "lucide-react";
+import { isTauri } from "@tauri-apps/api/core";
 import { checkSupport, loadEngine, useEngine } from "@/lib/engine";
+import {
+  activeNativeEngine,
+  refreshNativeEngines,
+  useIsDesktopApp,
+  useNativeEngines,
+} from "@/lib/native-engine";
 import { cn } from "@/lib/utils";
 
 function Logo() {
@@ -21,10 +28,46 @@ function Logo() {
 const nav = [
   { to: "/", label: "Create", icon: Sparkles },
   { to: "/history", label: "History", icon: History },
+  { to: "/settings", label: "Settings", icon: Settings2 },
 ] as const;
 
 export function EngineStatusPill({ compact = false }: { compact?: boolean }) {
   const e = useEngine();
+  const native = useNativeEngines();
+  const desktop = useIsDesktopApp();
+  const nativeEngine = activeNativeEngine(native.catalog);
+  if (desktop) {
+    const label = native.loading
+      ? "Checking engines…"
+      : nativeEngine
+        ? `FFmpeg ${nativeEngine.version}`
+        : "Engine needs setup";
+    return (
+      <div className={cn("rounded-xl border bg-card p-3", compact && "p-2")}>
+        <div className="flex items-center gap-2 text-xs font-semibold">
+          {native.loading ? (
+            <Loader2 className="size-3 animate-spin text-warning" />
+          ) : (
+            <span
+              className={cn(
+                "size-2 rounded-full",
+                nativeEngine?.compatible ? "bg-success" : "bg-warning",
+              )}
+            />
+          )}
+          {label}
+        </div>
+        {!compact && (
+          <p className="mt-1 text-[11px] leading-snug text-muted-foreground line-clamp-2">
+            {native.error ??
+              (nativeEngine
+                ? `${nativeEngine.bundled ? "Bundled" : "System"} engine · runs on your Mac`
+                : "Choose a compatible FFmpeg in Settings.")}
+          </p>
+        )}
+      </div>
+    );
+  }
   const dot = {
     idle: "bg-muted-foreground/40",
     loading: "bg-warning animate-pulse",
@@ -42,10 +85,18 @@ export function EngineStatusPill({ compact = false }: { compact?: boolean }) {
   return (
     <div className={cn("rounded-xl border bg-card p-3", compact && "p-2")}>
       <div className="flex items-center gap-2 text-xs font-semibold">
-        {e.status === "loading" ? <Loader2 className="size-3 animate-spin text-warning" /> : <span className={cn("size-2 rounded-full", dot)} />}
+        {e.status === "loading" ? (
+          <Loader2 className="size-3 animate-spin text-warning" />
+        ) : (
+          <span className={cn("size-2 rounded-full", dot)} />
+        )}
         FFmpeg · {label}
       </div>
-      {!compact && <p className="mt-1 text-[11px] leading-snug text-muted-foreground line-clamp-2">{e.message}</p>}
+      {!compact && (
+        <p className="mt-1 text-[11px] leading-snug text-muted-foreground line-clamp-2">
+          {e.message}
+        </p>
+      )}
       {!compact && (e.status === "idle" || e.status === "error") && (
         <button
           onClick={() => loadEngine().catch(() => {})}
@@ -59,7 +110,10 @@ export function EngineStatusPill({ compact = false }: { compact?: boolean }) {
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
-  useEffect(() => checkSupport(), []);
+  useEffect(() => {
+    checkSupport();
+    if (isTauri()) refreshNativeEngines().catch(() => {});
+  }, []);
   return (
     <div className="min-h-screen bg-background lg:grid lg:grid-cols-[232px_1fr]">
       <aside className="sticky top-0 hidden h-screen flex-col border-r border-sidebar-border bg-sidebar px-4 py-5 lg:flex">
@@ -91,17 +145,19 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-30 flex items-center justify-between border-b bg-background/90 px-4 py-3 backdrop-blur lg:hidden">
         <Logo />
         <nav className="flex items-center gap-1">
-          {[...nav, { to: "/help", label: "Help", icon: LifeBuoy } as const].map(({ to, label, icon: Icon }) => (
-            <Link
-              key={to}
-              to={to}
-              activeOptions={{ exact: true }}
-              aria-label={label}
-              className="grid size-9 place-items-center rounded-lg text-muted-foreground hover:bg-muted data-[status=active]:bg-secondary data-[status=active]:text-secondary-foreground"
-            >
-              <Icon className="size-4" />
-            </Link>
-          ))}
+          {[...nav, { to: "/help", label: "Help", icon: LifeBuoy } as const].map(
+            ({ to, label, icon: Icon }) => (
+              <Link
+                key={to}
+                to={to}
+                activeOptions={{ exact: true }}
+                aria-label={label}
+                className="grid size-9 place-items-center rounded-lg text-muted-foreground hover:bg-muted data-[status=active]:bg-secondary data-[status=active]:text-secondary-foreground"
+              >
+                <Icon className="size-4" />
+              </Link>
+            ),
+          )}
         </nav>
       </header>
 
@@ -110,7 +166,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   );
 }
 
-export function TopBar({ title, subtitle, actions }: { title: string; subtitle?: string; actions?: ReactNode }) {
+export function TopBar({
+  title,
+  subtitle,
+  actions,
+}: {
+  title: string;
+  subtitle?: string;
+  actions?: ReactNode;
+}) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-4 border-b px-5 py-5 md:px-8">
       <div>

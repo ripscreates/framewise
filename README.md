@@ -22,7 +22,7 @@ Can also process bulk files from folder too!
 | **Web app (V1)** | Available to try — [install instructions ↓](#web-app-install) | Runs locally in a desktop browser on macOS, Windows, and Linux. Browser conversions use FFmpeg WebAssembly; desktop FFmpeg is optional unless you want to run copied commands. |
 | **macOS app (V2)** | Developer preview | Apple Silicon; macOS 12 or newer. Uses FFmpeg WebAssembly downloaded from the internet; the native bundled engine is still in development. [Download Preview 1](https://github.com/ripscreates/framewise/releases/tag/v2.0.0-preview.1). |
 
-The Web V1 app remains available across macOS, Windows, and Linux. The V2 Mac app is an early desktop preview; it does not yet include the planned native FFmpeg engine, bundled engine choice, or compatibility checks.
+The Web V1 app remains available across macOS, Windows, and Linux. V2.1 native-engine work is in progress; it is not a downloadable release yet. The published V2.0.0 preview below still uses FFmpeg WebAssembly and needs an internet connection for its first conversion.
 
 **FFmpeg, made friendly.** Framewise is a web app that turns common media tasks into clear, reviewable FFmpeg steps. Choose what you want to do, adjust the options, then run the conversion in your browser or copy the command for desktop FFmpeg.
 
@@ -129,7 +129,7 @@ To stop the local app, return to the terminal and press **Ctrl+C**.
 3. This preview uses an ad-hoc signature and has not been notarized. If macOS blocks it, and you trust this download from the official Framewise GitHub release, open **System Settings → Privacy & Security → Open Anyway** and confirm.
 4. An internet connection is needed for the first conversion to download the FFmpeg WebAssembly engine from unpkg. The app does not include a native FFmpeg executable.
 
-This is a developer preview. Native FFmpeg execution, the bundled/system engine choice, compatibility checks, native file/output handling, and update checks remain in development. This package build has not been validated on a clean Mac or checked with an end-to-end media conversion.
+This V2.0.0 developer preview uses FFmpeg WebAssembly, not the planned native Mac engine. V2.1 development adds the Rust native runner, engine selection, capability checks, and Mac file/output handling. It is not ready to download until the signed bundled engine, native conversions, update delivery, and clean-Mac installation are verified. The current preview has not been validated on a clean Mac or checked with an end-to-end media conversion.
 
 ## Screenshots
 
@@ -150,7 +150,7 @@ This is a developer preview. Native FFmpeg execution, the bundled/system engine 
 
 <p><img src="docs/assets/framewise-mac-v2.png" alt="Framewise macOS V2 opening screen showing the guided preset workflow." width="800" /></p>
 
-Early V2 desktop-window preview. It processes media with FFmpeg WebAssembly; the native FFmpeg engine and all-in-one Mac release are still in development.
+Early V2.0 desktop-window preview. It processes media with FFmpeg WebAssembly; the V2.1 native FFmpeg engine and all-in-one Mac release are still in development.
 
 ## Video walkthrough
 

@@ -65,3 +65,12 @@ This is the running, evidence-based record for the V2 retrospective. It tracks p
 
 - The user reports that the public DMG downloaded successfully, they followed the macOS instructions, and Framewise opened on their Mac.
 - The Mac model, chip, and macOS version were not reported. This confirms download and launch only; media conversion and engine behavior remain unverified.
+
+## 2026-10-22 — V2.1 native-engine direction
+
+- **User-approved direction:** retain the preset-first shared UI and Web V1; use the Tauri Rust backend to run native FFmpeg on Mac; bundle a verified pinned engine; allow a compatible installed system engine; add engine controls in Settings.
+- **Initial build target:** FFmpeg 9.0.2 on Apple Silicon, verified against FFmpeg's release PGP key before compiling. The proposed bundle profile enables VideoToolbox/AudioToolbox without GPL or nonfree FFmpeg options.
+- **Known compatibility work:** this profile omits `libx264`, `libvpx`, MP3/Opus/Vorbis external encoders, and `libass`; inspect capabilities and make command/UI options engine-specific. VideoToolbox quality mapping is not interchangeable with x264 CRF/preset settings.
+- **Implementation added:** Rust engine inspection and process execution, native file/folder/subtitle dialogs and drag/drop intake, output-folder selection, Settings engine selection, capability warnings, batch progress, cancellation, and a PGP-verifying pinned source-build script. Web V1 remains on its browser engine.
+- **Build evidence:** the frontend production build, strict TypeScript check, and Rust `cargo check` passed. The Rust check temporarily used empty sidecars to satisfy Tauri's external-binary path check; those files were removed. Targeted ESLint on changed TypeScript sources found no rule errors (one Fast Refresh warning); full lint still reports Prettier violations across the source tree. The source-built engine was not created because GnuPG is not installed here; no media conversion or native-app runtime test was run.
+- **Still blocked before release:** build and inspect the actual FFmpeg sidecars, validate all native media workflows and batch/cancel behavior, publish a signed engine update manifest and asset for in-app updates, audit license notices/source, then sign/notarize and verify a clean-Mac installation.

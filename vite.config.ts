@@ -6,7 +6,7 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
-const desktopBuild = process.env.FRAMEWISE_DESKTOP === "true";
+const desktopBuild = process.env["FRAMEWISE_DESKTOP"] === "true";
 
 export default defineConfig({
   tanstackStart: {
