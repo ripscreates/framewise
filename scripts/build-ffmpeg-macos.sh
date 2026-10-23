@@ -10,6 +10,24 @@ FFMPEG="$OUT/ffmpeg-$TARGET"
 FFPROBE="$OUT/ffprobe-$TARGET"
 VERIFIED="$OUT/ffmpeg-$TARGET.verified"
 
+verify_profile() {
+  local ffmpeg_version build_configuration encoders ffprobe_version
+  ffmpeg_version="$("$FFMPEG" -version 2>&1)" || return 1
+  build_configuration="$("$FFMPEG" -buildconf 2>&1)" || return 1
+  encoders="$("$FFMPEG" -encoders 2>&1)" || return 1
+  ffprobe_version="$("$FFPROBE" -version 2>&1)" || return 1
+
+  [[ "$ffmpeg_version" == *"version $VERSION"* ]] || return 1
+  [[ "$build_configuration" == *"--enable-videotoolbox"* ]] || return 1
+  [[ "$build_configuration" == *"--enable-audiotoolbox"* ]] || return 1
+  [[ "$build_configuration" != *"--enable-gpl"* && "$build_configuration" != *"--enable-nonfree"* ]] || return 1
+  [[ "$encoders" == *"h264_videotoolbox"* ]] || return 1
+  [[ "$encoders" =~ [[:space:]]aac[[:space:]] ]] || return 1
+  [[ "$ffprobe_version" == *"version $VERSION"* ]] || return 1
+  [[ "$(lipo -archs "$FFMPEG")" == "arm64" ]] || return 1
+  [[ "$(lipo -archs "$FFPROBE")" == "arm64" ]] || return 1
+}
+
 if [ "$(uname -s)" != "Darwin" ] || [ "$(uname -m)" != "arm64" ]; then
   echo "The bundled V2.1 engine build currently targets Apple Silicon macOS only." >&2
   exit 1
@@ -22,14 +40,12 @@ for tool in curl gpg make clang tar lipo shasum; do
   fi
 done
 
-if [ -x "$FFMPEG" ] && [ -x "$FFPROBE" ] && [ -f "$VERIFIED" ] \
-  && [ "$(cat "$VERIFIED")" = "9.0.2 $TARGET $(shasum -a 256 "$FFMPEG" | awk '{print $1}') $(shasum -a 256 "$FFPROBE" | awk '{print $1}')" ] \
-  && "$FFMPEG" -version 2>&1 | head -n 1 | grep -Fq "version $VERSION" \
-  && "$FFMPEG" -buildconf 2>&1 | grep -Fq -- "--enable-videotoolbox" \
-  && "$FFMPEG" -buildconf 2>&1 | grep -Fq -- "--enable-audiotoolbox" \
-  && ! "$FFMPEG" -buildconf 2>&1 | grep -Eiq -- "--enable-(gpl|nonfree)"; then
-  echo "Verified Framewise FFmpeg $VERSION sidecars are already staged."
-  exit 0
+if [ -x "$FFMPEG" ] && [ -x "$FFPROBE" ] && [ -f "$VERIFIED" ]; then
+  EXPECTED_MARKER="9.0.2 $TARGET $(shasum -a 256 "$FFMPEG" | awk '{print $1}') $(shasum -a 256 "$FFPROBE" | awk '{print $1}')"
+  if [ "$(cat "$VERIFIED")" = "$EXPECTED_MARKER" ] && verify_profile; then
+    echo "Verified Framewise FFmpeg $VERSION sidecars are already staged."
+    exit 0
+  fi
 fi
 
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/framewise-ffmpeg.XXXXXX")"
@@ -72,16 +88,8 @@ mkdir -p "$OUT"
 install -m 755 "$TMP/install/bin/ffmpeg" "$FFMPEG"
 install -m 755 "$TMP/install/bin/ffprobe" "$FFPROBE"
 
-"$FFMPEG" -version 2>&1 | head -n 1 | grep -Fq "version $VERSION"
-"$FFMPEG" -buildconf 2>&1 | grep -Fq -- "--enable-videotoolbox"
-"$FFMPEG" -buildconf 2>&1 | grep -Fq -- "--enable-audiotoolbox"
-"$FFMPEG" -encoders 2>&1 | grep -Eq 'h264_videotoolbox'
-"$FFMPEG" -encoders 2>&1 | grep -Eq 'aac[[:space:]]'
-"$FFPROBE" -version 2>&1 | head -n 1 | grep -Fq "version $VERSION"
-[ "$(lipo -archs "$FFMPEG")" = "arm64" ]
-[ "$(lipo -archs "$FFPROBE")" = "arm64" ]
-if "$FFMPEG" -buildconf 2>&1 | grep -Eiq -- "--enable-(gpl|nonfree)"; then
-  echo "Refusing a GPL or nonfree FFmpeg build." >&2
+if ! verify_profile; then
+  echo "The built FFmpeg sidecars did not pass the pinned version, feature, license-profile, or architecture checks." >&2
   exit 1
 fi
 
