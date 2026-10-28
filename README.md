@@ -27,7 +27,7 @@ Both online demos use FFmpeg WebAssembly in the browser. They are UI feedback pr
 
 ### Help compare the two web interfaces
 
-Try the same small media task in [V1](https://framewise-v1-demo.ripleyjene.chatgpt.site/) and [preset-first V2](https://framewise-v2-presets-demo.ripleyjene.chatgpt.site/). If you're testing with someone else, alternate which version you try first. Please [send feedback through GitHub Issues](https://github.com/ripscreates/framewise/issues/new/choose): include your browser and operating system, the task you tried, which start felt clearer, where you hesitated, and whether the output downloaded and played. These demos do not randomly assign visitors or collect comparison analytics.
+Try the same small media task in [V1](https://framewise-v1-demo.ripleyjene.chatgpt.site/) and [preset-first V2](https://framewise-v2-presets-demo.ripleyjene.chatgpt.site/). If you're testing with someone else, alternate which version you try first. Please [send feedback with the Web UI comparison form](https://github.com/ripscreates/framewise/issues/new?template=web_ui_comparison.md): include your browser and operating system, the task you tried, which start felt clearer, where you hesitated, and whether the output downloaded and played. These demos do not randomly assign visitors or collect comparison analytics.
 
 **Browser memory:** Conversion runs on your computer and may need several times the input file's size in memory. Large files, 4K video, and big batches can slow or freeze the tab. Start with a small file; use desktop FFmpeg for larger jobs. The FFmpeg browser engine downloads on first use (about 31 MB).
 
